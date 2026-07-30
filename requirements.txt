@@ -1,0 +1,17 @@
+flask
+openpyxl
+pytz
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+oauth2client
+face-recognition
+opencv-python
+numpy
+Pillow
+tenacity
+gspread
+gunicorn==20.0.4
+python-dotenv
+tenacity

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Attendance Management System</title>
+    <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+/>
+
+    <style>
+        /* Your existing styles here, unchanged */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1A2634 0%, #2C3E50 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: linear-gradient(261deg, #a0c1e5 0%, #506981 100%);
+    border-radius: 14px;
+    padding: 25px;
+    max-width: 540px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    position: relative;
+    transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-4px);
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            letter-spacing: -0.2px;
+            line-height: 1.2;
+        }
+
+        .logo {
+            
+            height: 80px;
+            border-radius: 8px;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.03);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        label {
+            color: #E0E6ED;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            width: 100%;
+            text-align: left;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            padding: 12px;
+            margin-bottom: 16px;
+            background: #3A4B5C;
+            border: 1px solid #4A606F;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            width: 100%;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder {
+            color: #A0A0A0;
+            font-weight: 400;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #36C759;
+            box-shadow: 0 0 10px rgba(54, 199, 89, 0.4);
+            background: #3A4B5C;
+        }
+
+        button[type="submit"] {
+            background: linear-gradient(135deg, #36C759 0%, #28A745 100%);
+            color: #ffffff;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background: linear-gradient(135deg, #2DB84C 0%, #218838 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(54, 199, 89, 0.4);
+        }
+
+        button[type="submit"]:active {
+            transform: scale(0.98);
+        }
+
+        /* Style for the toggle password button */
+        #togglePassword {
+            position: absolute;
+            right: 12px;
+            top: 35%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: #A0A0A0;
+            cursor: pointer;
+            padding: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+
+        #togglePassword:hover {
+            color: #36C759;
+        }
+
+        .error {
+            background-color: #E63946;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.9rem;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 540px) {
+            .container {
+                padding: 20px;
+                max-width: 90%;
+            }
+
+            .header {
+                gap: 10px;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            .logo {
+                width:100%;
+                height: 64px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo" />
+            <h2 style="color: #1c3c75;">Department of Vocation</h2>
+            <h1>AI Attendance Management System</h1>
+        </div>
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        <form method="POST" action="/">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required />
+
+            <label for="password">Password:</label>
+            <div style="position: relative; width: 100%;">
+                <input type="password" id="password" name="password" required />
+                <button type="button" id="togglePassword" aria-label="Toggle password visibility">
+                    <!-- Eye icon (show password) -->
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    <script>
+        const togglePassword = document.getElementById("togglePassword");
+        const password = document.getElementById("password");
+        const icon = togglePassword.querySelector("i");
+
+        togglePassword.addEventListener("click", () => {
+    const type = password.getAttribute("type") === "password" ? "text" : "password";
+    password.setAttribute("type", type);
+
+    if (type === "password") {
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+    } else {
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+    }
+});
+
+    </script>
+</body>
+</html>
