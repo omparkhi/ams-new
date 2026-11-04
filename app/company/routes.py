@@ -7,7 +7,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from io import BytesIO
 import os
-from googleapiclient.errors import HttpError
+# from googleapiclient.errors import HttpError
 from app.utils.attendance_utils import logger
 from openpyxl.formatting.rule import FormulaRule
 from app.utils.attendance_utils import calculate_working_days, load_encodings , calculate_weekly_working_days , get_todays_attendance
@@ -18,7 +18,10 @@ from PIL import Image
 import sqlite3
 from app.utils.db_utils import get_db_connection
 import numpy as np
-import face_recognition
+try:
+    import face_recognition
+except ImportError:
+    face_recognition = None
 import base64
 from app.utils.face_utils import save_encodings
 from app.utils.performance_utils import measure_performance

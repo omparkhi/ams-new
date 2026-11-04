@@ -1,1 +1,25 @@
+# Environment & Secrets
 .env
+*.env
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Large Runtime Logs
+function_log.txt
+*.log
+
+# Node & Frontend dependencies/builds
+**/node_modules/
+**/dist/
+.DS_Store
+Thumbs.db

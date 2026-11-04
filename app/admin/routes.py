@@ -26,7 +26,10 @@ from app.utils.face_utils import (load_encodings , find_best_match)
 import logging
 from app.utils.db_utils import get_db_connection , fetch_user_by_name_from_company_table,delete_user_from_company_table
 from app.utils.performance_utils import measure_performance
-import face_recognition
+try:
+    import face_recognition
+except ImportError:
+    face_recognition = None
 
 admin_bp = Blueprint('admin', __name__)
 
