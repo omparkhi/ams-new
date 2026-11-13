@@ -543,3 +543,28 @@
   text-align: left;
   display: block;
 }
+
+/* Responsive media queries for legacy/alternative app layout */
+@media (max-width: 768px) {
+  .ams-navbar,
+  .ams-app-container .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px;
+  }
+  .ams-navbar .nav-links,
+  .ams-app-container .navbar .nav-links {
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .company-info {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .ams-login-container {
+    padding: 20px 14px;
+  }
+}

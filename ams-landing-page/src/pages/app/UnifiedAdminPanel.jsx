@@ -12,6 +12,7 @@ import '../../styles/ams-modern.css';
 export default function UnifiedAdminPanel() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'attendance', 'mark-attendance', 'records'
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Data states
   const [todayData, setTodayData] = useState(null);
@@ -317,23 +318,42 @@ export default function UnifiedAdminPanel() {
 
   return (
     <div className="modern-app-layout">
+      {/* Mobile Drawer Backdrop */}
+      <div
+        className={`sidebar-backdrop ${mobileMenuOpen ? 'active' : ''}`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
       {/* ==========================================================================
           LEFT SIDEBAR (RIVERO STYLE)
           ========================================================================== */}
-      <aside className="modern-sidebar">
-        <a href="#/app" className="sidebar-brand">
-          <div className="brand-icon-box">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      <aside className={`modern-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+        <div className="sidebar-brand-row">
+          <a href="#/app" className="sidebar-brand" onClick={() => setMobileMenuOpen(false)}>
+            <div className="brand-icon-box">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <span className="brand-name">AMS Cloud</span>
+          </a>
+          <button
+            className="sidebar-close-btn"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
-          </div>
-          <span className="brand-name">AMS Cloud</span>
-        </a>
+          </button>
+        </div>
 
         <nav className="sidebar-nav">
           <button
             className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
+            onClick={() => { setActiveTab('overview'); setMobileMenuOpen(false); }}
           >
             <DashboardHouseIcon size={20} />
             Dashboard
@@ -341,7 +361,7 @@ export default function UnifiedAdminPanel() {
 
           <button
             className={`nav-item ${activeTab === 'attendance' ? 'active' : ''}`}
-            onClick={() => setActiveTab('attendance')}
+            onClick={() => { setActiveTab('attendance'); setMobileMenuOpen(false); }}
           >
             <AttendanceBadgeIcon size={20} />
             Attendance
@@ -349,7 +369,7 @@ export default function UnifiedAdminPanel() {
 
           <button
             className={`nav-item ${activeTab === 'mark-attendance' ? 'active' : ''}`}
-            onClick={() => setActiveTab('mark-attendance')}
+            onClick={() => { setActiveTab('mark-attendance'); setMobileMenuOpen(false); }}
           >
             <ScanViewfinderIcon size={20} />
             Mark Attendance
@@ -357,7 +377,7 @@ export default function UnifiedAdminPanel() {
 
           <button
             className={`nav-item ${activeTab === 'records' ? 'active' : ''}`}
-            onClick={() => setActiveTab('records')}
+            onClick={() => { setActiveTab('records'); setMobileMenuOpen(false); }}
           >
             <StudentAvatarIcon size={20} />
             Students / Records
@@ -365,7 +385,7 @@ export default function UnifiedAdminPanel() {
 
           <button
             className="nav-item"
-            onClick={() => setShowSettingsModal(true)}
+            onClick={() => { setShowSettingsModal(true); setMobileMenuOpen(false); }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3"/>
@@ -386,7 +406,7 @@ export default function UnifiedAdminPanel() {
             </div>
           </div>
 
-          <button onClick={logout} className="nav-item" style={{ color: '#EF4444' }}>
+          <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="nav-item" style={{ color: '#EF4444' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/>
@@ -403,12 +423,25 @@ export default function UnifiedAdminPanel() {
       <main className="modern-main">
         {/* TOP BAR */}
         <header className="modern-topbar">
-          <h1 className="topbar-title">
-            {activeTab === 'overview' && 'Dashboard'}
-            {activeTab === 'attendance' && 'Live Attendance Roster'}
-            {activeTab === 'mark-attendance' && 'Face Recognition Kiosk'}
-            {activeTab === 'records' && 'Student Records & Management'}
-          </h1>
+          <div className="topbar-left">
+            <button
+              className="mobile-menu-btn"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open Navigation Menu"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+            <h1 className="topbar-title">
+              {activeTab === 'overview' && 'Dashboard'}
+              {activeTab === 'attendance' && 'Live Attendance Roster'}
+              {activeTab === 'mark-attendance' && 'Face Recognition Kiosk'}
+              {activeTab === 'records' && 'Student Records & Management'}
+            </h1>
+          </div>
 
           <div className="topbar-actions">
             <a href="mailto:support@tarstechnologies.com" className="help-link">
@@ -417,7 +450,7 @@ export default function UnifiedAdminPanel() {
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
                 <line x1="12" y1="17" x2="12.01" y2="17"/>
               </svg>
-              Need help?
+              <span>Need help?</span>
             </a>
 
             <button className="icon-btn" title="Notifications">
@@ -891,13 +924,13 @@ export default function UnifiedAdminPanel() {
               ========================================================================== */}
           {activeTab === 'attendance' && (
             <div className="modern-card">
-              <div className="card-header-flex">
+              <div className="card-header-flex roster-header-flex">
                 <div>
                   <h3 className="card-title">Live Attendance Roster</h3>
                   <p className="card-subtitle">Real-time contactless check-in/out records for today</p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="filter-buttons-group">
                   <button
                     className={`btn-outline ${activeFilter === 'all' ? 'active' : ''}`}
                     onClick={() => setActiveFilter('all')}
@@ -921,7 +954,7 @@ export default function UnifiedAdminPanel() {
                 </div>
               </div>
 
-              <div style={{ overflowX: 'auto' }}>
+              <div className="table-responsive">
                 <table className="roster-table">
                   <thead>
                     <tr>
@@ -1069,7 +1102,7 @@ export default function UnifiedAdminPanel() {
               ========================================================================== */}
           {activeTab === 'records' && (
             <div className="modern-card">
-              <div className="card-header-flex">
+              <div className="card-header-flex records-header-flex">
                 <div>
                   <h3 className="card-title">Enrolled Members ({students.length})</h3>
                   <p className="card-subtitle">Manage company biometric vector database & registered students</p>
@@ -1087,58 +1120,60 @@ export default function UnifiedAdminPanel() {
                 </button>
               </div>
 
-              <table className="roster-table">
-                <thead>
-                  <tr>
-                    <th>Student Name</th>
-                    <th>Biometric Vectors</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((s) => (
-                    <tr key={s.name}>
-                      <td>
-                        <div className="member-cell">
-                          <div className="avatar">{s.name[0]}</div>
-                          <div>
-                            <div className="name">{s.name}</div>
-                            <div className="sub">{user?.company_name}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge-pill">
-                          {s.vector_count || 10} vectors cached
-                        </span>
-                      </td>
-                      <td>
-                        <span className="status-chip present">
-                          ✓ Enrolled
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          className="btn-table-action checkout"
-                          onClick={() => handleDeleteUser(s.name)}
-                          style={{ color: '#EF4444' }}
-                        >
-                          Delete Student
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {students.length === 0 && (
+              <div className="table-responsive">
+                <table className="roster-table">
+                  <thead>
                     <tr>
-                      <td colSpan="4" style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>
-                        No students enrolled yet. Click "Enroll New Student" to get started.
-                      </td>
+                      <th>Student Name</th>
+                      <th>Biometric Vectors</th>
+                      <th>Status</th>
+                      <th>Action</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {students.map((s) => (
+                      <tr key={s.name}>
+                        <td>
+                          <div className="member-cell">
+                            <div className="avatar">{s.name[0]}</div>
+                            <div>
+                              <div className="name">{s.name}</div>
+                              <div className="sub">{user?.company_name}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="badge-pill">
+                            {s.vector_count || 10} vectors cached
+                          </span>
+                        </td>
+                        <td>
+                          <span className="status-chip present">
+                            ✓ Enrolled
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            className="btn-table-action checkout"
+                            onClick={() => handleDeleteUser(s.name)}
+                            style={{ color: '#EF4444' }}
+                          >
+                            Delete Student
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+
+                    {students.length === 0 && (
+                      <tr>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>
+                          No students enrolled yet. Click "Enroll New Student" to get started.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
@@ -1253,7 +1288,7 @@ export default function UnifiedAdminPanel() {
             </div>
 
             <form onSubmit={handleSaveSettings}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+              <div className="modal-form-grid-2">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '600', marginBottom: '4px', color: '#64748B' }}>
                     Shift Start (HH:MM):
@@ -1281,7 +1316,7 @@ export default function UnifiedAdminPanel() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+              <div className="modal-form-grid-2">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '600', marginBottom: '4px', color: '#64748B' }}>
                     Required Hours / Day:
@@ -1322,7 +1357,7 @@ export default function UnifiedAdminPanel() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '18px' }}>
+              <div className="modal-form-grid-2" style={{ marginBottom: '18px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '600', marginBottom: '4px', color: '#64748B' }}>
                     Contact Phone:
