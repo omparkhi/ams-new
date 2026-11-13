@@ -101,7 +101,16 @@ export default function Signup() {
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
             </svg>
-            <div>{error}</div>
+            <div style={{ flex: 1 }}>
+              <div>{error}</div>
+              {error.toLowerCase().includes('already') && (
+                <div style={{ marginTop: '6px' }}>
+                  <Link to="/login" style={{ color: '#B91C1C', fontWeight: '700', textDecoration: 'underline' }}>
+                    Click here to Sign In with your existing account →
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

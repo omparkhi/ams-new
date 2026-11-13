@@ -87,10 +87,10 @@ def register_company():
     try:
         cursor = conn.cursor()
 
-        # Check if username already exists
-        cursor.execute("SELECT * FROM Companies WHERE Username = ?", (username,))
+        # Check if username already exists (case-insensitive)
+        cursor.execute("SELECT * FROM Companies WHERE LOWER(Username) = LOWER(?)", (username,))
         if cursor.fetchone():
-            return jsonify({'error': f'Username "{username}" is already taken. Please choose another.'}), 409
+            return jsonify({'error': f'Username "{username}" is already taken. If you already have an account, please sign in instead.'}), 409
 
         # Generate unique company_id
         base_id = company_name.replace(" ", "_")
