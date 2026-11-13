@@ -1,5 +1,14 @@
 // Centralized API client for AMS SaaS
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+const getBaseUrl = () => {
+  let url = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api').trim().replace(/\/+$/, '');
+  // If the URL does not end with /api, append it automatically
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
+const API_BASE_URL = getBaseUrl();
 
 class ApiService {
   getToken() {

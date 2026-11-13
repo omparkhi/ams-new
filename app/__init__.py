@@ -16,19 +16,12 @@ def create_app():
     # Allow up to 64MB payloads to support 20-frame camera burst biometric capture
     app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024
 
-    # Enable CORS for React frontend (Vite on localhost:3000 / localhost:5173)
-    CORS(app, resources={r"/api/*": {
-        "origins": [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-            "http://localhost:5000",
-            "http://127.0.0.1:5000"
-        ],
+    # Enable CORS for React frontend (supports localhost, vercel.app domains, and wildcard)
+    CORS(app, resources={r"/*": {
+        "origins": "*",
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-        "supports_credentials": True
+        "supports_credentials": False
     }})
 
     # Universal CORS handler to guarantee headers on all responses (including errors)
@@ -82,8 +75,9 @@ def create_app():
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(company_bp, url_prefix='/company')
 
-    # Register Modern SaaS REST API Blueprint
+    # Register Modern SaaS REST API Blueprint (registered at both /api and root / for resilience)
     app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(api_bp, name='api_root_bp')
 
     return app
 
