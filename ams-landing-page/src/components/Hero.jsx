@@ -63,14 +63,17 @@ export default function Hero() {
                   </div>
                 </Link>
 
-                {/* Hand-drawn "Connect with a team" Callout Illustration */}
+                {/* Hand-drawn "Connect with a team" Callout */}
                 <div className="hero-connect-team-callout">
                   <img
-                    src="/images/connect-with-team.png"
-                    srcSet="/images/connect-with-team.png 1x, /images/connect-with-team@2x.png 2x"
-                    alt="Connect with a team"
+                    src="/images/handwritten-arrow.png"
+                    alt=""
+                    className="hero-callout-arrow"
                     loading="lazy"
                   />
+                  <span className="hero-callout-text">
+                    Connect with a team
+                  </span>
                 </div>
               </div>
 
@@ -85,17 +88,33 @@ export default function Hero() {
                 }
                 .hero-connect-team-callout {
                   position: absolute;
-                  left: calc(50% + 95px);
-                  top: -26px;
+                  left: calc(50% + 105px);
+                  top: -22px;
+                  display: flex;
+                  align-items: flex-end;
+                  gap: 8px;
                   pointer-events: none;
                   user-select: none;
                   z-index: 10;
                 }
-                .hero-connect-team-callout img {
-                  max-width: 185px;
+                .hero-callout-arrow {
+                  width: 46px;
                   height: auto;
                   display: block;
-                  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+                  margin-bottom: 3px;
+                  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
+                }
+                .hero-callout-text {
+                  font-family: 'Patrick Hand', 'Caveat', 'Segoe Print', cursive, sans-serif;
+                  font-size: 21px;
+                  font-weight: 400;
+                  color: #ffffff;
+                  letter-spacing: 0.8px;
+                  word-spacing: 4px;
+                  white-space: nowrap;
+                  transform: rotate(-6deg);
+                  display: inline-block;
+                  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
                 }
                 @media (max-width: 767px) {
                   .hero-buttons-single {
@@ -106,12 +125,16 @@ export default function Hero() {
                     position: static !important;
                     left: auto !important;
                     top: auto !important;
-                    margin-top: 8px;
+                    margin-top: 10px;
                     display: flex;
                     justify-content: center;
+                    align-items: center;
                   }
-                  .hero-connect-team-callout img {
-                    max-width: 155px !important;
+                  .hero-callout-arrow {
+                    width: 38px;
+                  }
+                  .hero-callout-text {
+                    font-size: 18px;
                   }
                 }
               `}</style>
