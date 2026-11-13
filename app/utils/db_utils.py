@@ -190,14 +190,21 @@ def init_db_schema():
 
 def fetch_user_by_username(username):
     """
-    Fetch user data from the database by username.
-    Returns the user data or None if not found.
+    Fetch user data from the database by username or email.
+    Supports case-insensitive matching and whitespace trimming.
     """
+    if not username:
+        return None
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Companies WHERE username = ?", (username,))
+            cleaned = username.strip()
+            cursor.execute("""
+                SELECT * FROM Companies 
+                WHERE LOWER(TRIM(Username)) = LOWER(?)
+                   OR LOWER(TRIM(Email)) = LOWER(?)
+            """, (cleaned, cleaned))
             user_data = cursor.fetchone()
             conn.close()
             return user_data
