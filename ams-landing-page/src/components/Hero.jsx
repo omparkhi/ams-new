@@ -101,7 +101,7 @@ export default function Hero() {
                   width: 44px;
                   height: auto;
                   display: block;
-                  margin-top: 14px;
+                  margin-top: 18px;
                   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
                 }
                 .hero-callout-text {
