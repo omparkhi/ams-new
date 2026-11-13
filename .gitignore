@@ -23,3 +23,5 @@ function_log.txt
 **/dist/
 .DS_Store
 Thumbs.db
+
+.vercel
