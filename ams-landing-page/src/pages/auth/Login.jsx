@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import '../../styles/ams-theme.css';
+import '../../styles/ams-modern.css';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,6 +10,7 @@ export default function Login() {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,79 +25,152 @@ export default function Login() {
       await login(username, password);
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message || 'Invalid username or password.');
+      setError(err.message || 'Invalid username or password. Please verify your credentials.');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="ams-login-body">
-      <div className="ams-login-container">
-        <h1>AI Attendance Management</h1>
-        <p style={{ color: '#E0E6ED', marginBottom: '20px', fontSize: '0.95rem' }}>
-          Sign in to your organization attendance portal
-        </p>
+    <div className="modern-auth-body">
+      {/* Top Navigation */}
+      <div className="modern-auth-top-nav">
+        <Link to="/" className="modern-auth-back-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Back to Home
+        </Link>
+      </div>
 
+      {/* Main Login Card */}
+      <div className="modern-auth-card login-card">
+        {/* Brand Icon & Heading */}
+        <div className="modern-auth-header">
+          <div className="modern-auth-icon-wrap">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 3H5a2 2 0 0 0-2 2v2"></path>
+              <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+              <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+              <path d="M3 17v2a2 2 0 0 0 2 2h2"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 9v1"></path>
+              <path d="M12 14v1"></path>
+            </svg>
+          </div>
+          <h1 className="modern-auth-title">Welcome to AMS</h1>
+          <p className="modern-auth-subtitle">
+            Sign in to your organization attendance portal
+          </p>
+        </div>
+
+        {/* Error Alert */}
         {error && (
-          <div style={{
-            backgroundColor: '#DC3545',
-            color: '#fff',
-            padding: '10px',
-            borderRadius: '8px',
-            marginBottom: '15px',
-            fontSize: '0.9rem'
-          }}>
-            {error}
+          <div className="modern-auth-alert-error">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}>
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <div>{error}</div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-          <div style={{ marginBottom: '15px', textAlign: 'left' }}>
-            <label style={{ display: 'block', color: '#E0E6ED', marginBottom: '5px', fontWeight: '500' }}>
-              Username
+        {/* Login Form */}
+        <form onSubmit={handleSubmit}>
+          <div className="modern-auth-field">
+            <label className="modern-auth-label">
+              Admin Username or Email <span className="required">*</span>
             </label>
-            <input
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter username"
-              className="ams-input"
-              style={{ borderRadius: '8px' }}
-            />
+            <div className="modern-auth-input-wrap">
+              <input
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="e.g. admin or admin@company.com"
+                className="modern-auth-input"
+                autoComplete="username"
+              />
+            </div>
           </div>
 
-          <div style={{ marginBottom: '20px', textAlign: 'left' }}>
-            <label style={{ display: 'block', color: '#E0E6ED', marginBottom: '5px', fontWeight: '500' }}>
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              className="ams-input"
-              style={{ borderRadius: '8px' }}
-            />
+          <div className="modern-auth-field">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label className="modern-auth-label" style={{ marginBottom: 0 }}>
+                Password <span className="required">*</span>
+              </label>
+            </div>
+            <div className="modern-auth-input-wrap">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="modern-auth-input has-icon-right"
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="modern-auth-eye-btn"
+                title={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className="ams-btn ams-btn-success"
-            style={{ width: '100%', padding: '12px', borderRadius: '8px', fontSize: '1rem', fontWeight: 'bold' }}
+            className="modern-auth-submit-btn"
           >
-            {submitting ? 'Authenticating...' : 'Sign In'}
+            {submitting ? (
+              <>
+                <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                </svg>
+                <span>Authenticating...</span>
+              </>
+            ) : (
+              <>
+                <span>Sign In to Workspace</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </>
+            )}
           </button>
         </form>
 
-        <div style={{ marginTop: '20px', fontSize: '0.9rem', color: '#E0E6ED' }}>
-          Don't have an organization account?{' '}
-          <Link to="/signup" style={{ color: '#ffffff', fontWeight: 'bold', textDecoration: 'underline' }}>
-            Register Organization
-          </Link>
+        {/* Footer Redirect Link */}
+        <div className="modern-auth-footer">
+          Don't have an organization account?
+          <Link to="/signup">Register Organization</Link>
+        </div>
+
+        {/* Trust Badge */}
+        <div className="modern-auth-trust-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span>256-bit encrypted • Face biometric protected</span>
         </div>
       </div>
     </div>

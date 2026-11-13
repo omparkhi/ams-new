@@ -1160,3 +1160,319 @@ body {
   box-shadow: 0 25px 50px -12px rgba(50, 43, 128, 0.20);
   border: 1px solid var(--border-color);
 }
+
+/* ==========================================================================
+   AMS Modern SaaS Auth Theme (Login & Registration)
+   Matching 100% with Rivero Design System, Typography & Spacing
+   ========================================================================== */
+
+.modern-auth-body {
+  min-height: 100vh;
+  background-color: var(--bg-app);
+  background-image: 
+    radial-gradient(at 50% 0%, rgba(114, 104, 234, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(249, 203, 51, 0.06) 0px, transparent 40%),
+    radial-gradient(at 0% 100%, rgba(114, 104, 234, 0.05) 0px, transparent 40%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  font-family: var(--font-family);
+  color: var(--text-main);
+  position: relative;
+}
+
+.modern-auth-top-nav {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modern-auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(50, 43, 128, 0.03);
+}
+
+.modern-auth-back-link:hover {
+  color: var(--primary);
+  border-color: rgba(114, 104, 234, 0.35);
+  background: #ffffff;
+  transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(114, 104, 234, 0.08);
+}
+
+.modern-auth-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 45px -10px rgba(50, 43, 128, 0.08), 0 4px 16px -2px rgba(50, 43, 128, 0.03);
+  padding: 40px 44px;
+  width: 100%;
+  position: relative;
+  transition: box-shadow 0.3s ease;
+}
+
+@media (max-width: 640px) {
+  .modern-auth-card {
+    padding: 28px 22px;
+    border-radius: var(--radius-lg);
+  }
+}
+
+.modern-auth-card.login-card {
+  max-width: 450px;
+}
+
+.modern-auth-card.signup-card {
+  max-width: 640px;
+}
+
+.modern-auth-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.modern-auth-icon-wrap {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 16px auto;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(114, 104, 234, 0.12) 0%, rgba(114, 104, 234, 0.04) 100%);
+  border: 1px solid rgba(114, 104, 234, 0.20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  box-shadow: 0 4px 12px rgba(114, 104, 234, 0.08);
+}
+
+.modern-auth-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.4px;
+  margin-bottom: 6px;
+  line-height: 1.25;
+}
+
+.modern-auth-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Alert / Error Box */
+.modern-auth-alert-error {
+  background-color: var(--danger-light);
+  border: 1px solid #FECACA;
+  color: #B91C1C;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  font-size: 13.5px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.4;
+  animation: authAlertFadeIn 0.2s ease-out;
+}
+
+@keyframes authAlertFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Section Separator & Badge */
+.modern-auth-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--primary);
+  margin: 22px 0 12px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+/* Form Groups & Inputs */
+.modern-auth-field {
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.modern-auth-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.modern-auth-label span.required {
+  color: var(--primary);
+  margin-left: 2px;
+}
+
+.modern-auth-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.modern-auth-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  font-family: var(--font-family);
+  font-size: 14px;
+  color: var(--text-heading);
+  background-color: #FAFAFD;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.modern-auth-input::placeholder {
+  color: var(--text-subtle);
+  font-size: 13.5px;
+}
+
+.modern-auth-input:focus {
+  background-color: #FFFFFF;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.modern-auth-input.has-icon-right {
+  padding-right: 42px;
+}
+
+.modern-auth-eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-subtle);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.2s ease;
+}
+
+.modern-auth-eye-btn:hover {
+  color: var(--primary);
+}
+
+/* Grid Layouts for Fields */
+.modern-auth-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.modern-auth-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .modern-auth-grid-2,
+  .modern-auth-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+/* Primary Action Button */
+.modern-auth-submit-btn {
+  width: 100%;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  box-shadow: 0 4px 14px rgba(114, 104, 234, 0.28);
+  transition: all 0.2s ease;
+}
+
+.modern-auth-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #675ce6 0%, #5246d8 100%);
+  box-shadow: 0 8px 22px rgba(114, 104, 234, 0.38);
+  transform: translateY(-1px);
+}
+
+.modern-auth-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(114, 104, 234, 0.2);
+}
+
+.modern-auth-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Helper / Switch Links */
+.modern-auth-footer {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.modern-auth-footer a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+  transition: color 0.15s ease;
+}
+
+.modern-auth-footer a:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+.modern-auth-trust-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 24px;
+  font-size: 12px;
+  color: var(--text-subtle);
+}
+
