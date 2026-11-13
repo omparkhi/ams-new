@@ -88,20 +88,20 @@ export default function Hero() {
                 }
                 .hero-connect-team-callout {
                   position: absolute;
-                  left: calc(50% + 105px);
-                  top: -22px;
+                  left: calc(50% + 95px);
+                  top: -34px;
                   display: flex;
-                  align-items: flex-end;
+                  align-items: flex-start;
                   gap: 8px;
                   pointer-events: none;
                   user-select: none;
                   z-index: 10;
                 }
                 .hero-callout-arrow {
-                  width: 46px;
+                  width: 44px;
                   height: auto;
                   display: block;
-                  margin-bottom: 3px;
+                  margin-top: 14px;
                   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
                 }
                 .hero-callout-text {
@@ -113,6 +113,7 @@ export default function Hero() {
                   word-spacing: 4px;
                   white-space: nowrap;
                   transform: rotate(-6deg);
+                  transform-origin: bottom left;
                   display: inline-block;
                   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
                 }
