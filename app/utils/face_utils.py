@@ -1,6 +1,7 @@
 import os
 import pickle
 import logging
+import numpy as np
 
 try:
     import face_recognition
@@ -50,16 +51,27 @@ def parse_time_range(time_range):
     return time_range.strip(), ''
 
 def find_best_match(face_encoding, known_faces, tolerance=0.5, strict_threshold=0.45):
-    if not face_recognition:
-        logger.warning("face_recognition library not available.")
+    if not known_faces:
         return None
     matches = []
+    face_vec = np.array(face_encoding)
     for current_name, known_encodings in known_faces.items():
-        distances = face_recognition.face_distance(known_encodings, face_encoding)
-        for i, distance in enumerate(distances):
-            if distance < tolerance:
-                matches.append((current_name, distance))
-    
+        if not known_encodings:
+            continue
+        try:
+            if face_recognition:
+                distances = face_recognition.face_distance(known_encodings, face_encoding)
+            else:
+                # Direct numpy euclidean distance: identical to face_recognition.face_distance
+                known_arr = np.array(known_encodings)
+                distances = np.linalg.norm(known_arr - face_vec, axis=1)
+            for distance in distances:
+                if distance < tolerance:
+                    matches.append((current_name, float(distance)))
+        except Exception as e:
+            logger.debug(f"Distance calculation error for {current_name}: {e}")
+            continue
+
     if matches:
         best_match = min(matches, key=lambda x: x[1])
         name, distance = best_match
@@ -68,7 +80,7 @@ def find_best_match(face_encoding, known_faces, tolerance=0.5, strict_threshold=
             return name, distance
         else:
             logger.debug(f"Best match {name} rejected: distance {distance} >= {strict_threshold}")
-    
+
     logger.debug("No valid match found for face.")
     return None
 

@@ -1,8 +1,23 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './styles/riveero.css';
 
-// Pages
+// Auth Context & Protected Route
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// SaaS Auth & Application Pages
+import Signup from './pages/auth/Signup';
+import Login from './pages/auth/Login';
+import UnifiedAdminPanel from './pages/app/UnifiedAdminPanel';
+import AppLayout from './pages/app/AppLayout';
+import Dashboard from './pages/app/Dashboard';
+import Kiosk from './pages/app/Kiosk';
+import StudentEnrollment from './pages/app/StudentEnrollment';
+import AttendanceHistory from './pages/app/AttendanceHistory';
+import CompanySettings from './pages/app/CompanySettings';
+
+// Public / Marketing Pages
 import Home from './pages/Home';
 import Features from './pages/Features';
 import PricingV1 from './pages/PricingV1';
@@ -29,31 +44,58 @@ import NotFound from './pages/NotFound';
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/features" element={<Features />} />
-        <Route path="/pricing-v1" element={<PricingV1 />} />
-        <Route path="/pricing-v2" element={<PricingV2 />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog-posts/:slug" element={<BlogDetails />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/case-study" element={<CaseStudy />} />
-        <Route path="/case-study/:slug" element={<CaseStudyDetails />} />
-        <Route path="/integration" element={<Integration />} />
-        <Route path="/integrations/:slug" element={<IntegrationDetails />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/product/:slug" element={<ProductDetails />} />
-        <Route path="/book-a-demo" element={<BookDemo />} />
-        <Route path="/review" element={<Review />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-conditions" element={<TermsConditions />} />
-        <Route path="/license" element={<License />} />
-        <Route path="/changelog" element={<Changelog />} />
-        <Route path="/styleguide" element={<Styleguide />} />
-        <Route path="/404" element={<NotFound />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          {/* Public SaaS Auth Routes */}
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+
+          {/* Exact Unified Office Admin Panel from admin_panel.html */}
+          <Route
+            path="/app"
+            element={
+              <ProtectedRoute>
+                <UnifiedAdminPanel />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/app/dashboard"
+            element={
+              <ProtectedRoute>
+                <UnifiedAdminPanel />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Marketing / Landing Page Routes */}
+
+          <Route path="/" element={<Home />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/pricing-v1" element={<PricingV1 />} />
+          <Route path="/pricing-v2" element={<PricingV2 />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog-posts/:slug" element={<BlogDetails />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/case-study" element={<CaseStudy />} />
+          <Route path="/case-study/:slug" element={<CaseStudyDetails />} />
+          <Route path="/integration" element={<Integration />} />
+          <Route path="/integrations/:slug" element={<IntegrationDetails />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/product/:slug" element={<ProductDetails />} />
+          <Route path="/book-a-demo" element={<BookDemo />} />
+          <Route path="/review" element={<Review />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-conditions" element={<TermsConditions />} />
+          <Route path="/license" element={<License />} />
+          <Route path="/changelog" element={<Changelog />} />
+          <Route path="/styleguide" element={<Styleguide />} />
+          <Route path="/404" element={<NotFound />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
+

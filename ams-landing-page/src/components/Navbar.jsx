@@ -44,7 +44,7 @@ export default function Navbar() {
                   </span>
                 </Link>
 
-                {/* Nav Links - Clean & without Home or Explore All Pages */}
+                {/* Nav Links */}
                 <nav
                   role="navigation"
                   className={`nav-menu _01 w-nav-menu ${mobileMenuOpen ? 'w--open' : ''}`}
@@ -54,21 +54,38 @@ export default function Navbar() {
                   <Link to="/pricing-v1" onClick={closeMenus} className="nav-link gap-top w-nav-link">Pricing</Link>
                   <Link to="/about" onClick={closeMenus} className="nav-link gap-top w-nav-link">About</Link>
                   <Link to="/contact" onClick={closeMenus} className="nav-link w-nav-link">Contact</Link>
+                  <Link to="/login" onClick={closeMenus} className="nav-link w-nav-link" style={{ color: '#60A5FA', fontWeight: '600' }}>Sign In</Link>
                 </nav>
 
-                {/* Header CTA Buttons - Book Demo only */}
-                <div className="header-button">
+                {/* Header CTA Buttons */}
+                <div className="header-button" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Link
+                    to="/login"
+                    onClick={closeMenus}
+                    style={{
+                      color: '#E2E8F0',
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      padding: '8px 12px'
+                    }}
+                  >
+                    Sign In
+                  </Link>
+
                   <div className="button-wrap">
                     <Link
-                      to="/book-a-demo"
+                      to="/signup"
                       onClick={closeMenus}
                       className="hero-button w-variant-445a0c0f-f314-4cf0-1342-7d380467caed w-inline-block"
+                      style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}
                     >
                       <div className="hero-button-content-wrap w-variant-445a0c0f-f314-4cf0-1342-7d380467caed">
-                        <p className="hero-button-text w-variant-445a0c0f-f314-4cf0-1342-7d380467caed">Book Demo</p>
+                        <p className="hero-button-text w-variant-445a0c0f-f314-4cf0-1342-7d380467caed">Start Free Trial →</p>
                       </div>
                     </Link>
                   </div>
+
 
                   {/* Mobile Hamburger Button */}
                   <div

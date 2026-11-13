@@ -77,11 +77,12 @@
 
 # app/utils/db_utils.py
 
+import os
 import sqlite3
 import logging
 
-# Adjust this path as needed
-DB_PATH = "sqlite_exports/attendance_data.db"
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+DB_PATH = os.path.join(BASE_DIR, "sqlite_exports", "attendance_data.db")
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -97,6 +98,80 @@ def get_db_connection():
     except sqlite3.Error as e:
         logger.error(f"Error connecting to the database: {e}")
         return None
+
+def init_db_schema():
+    """
+    Ensures all necessary tables and columns exist in the SQLite database.
+    """
+    conn = get_db_connection()
+    if not conn:
+        return
+    try:
+        cursor = conn.cursor()
+        
+        # Ensure Companies table exists
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Companies (
+                "Company ID" TEXT PRIMARY KEY,
+                "Company Name" TEXT,
+                "Username" TEXT UNIQUE,
+                "Password" TEXT,
+                "Leaves Per Month" TEXT DEFAULT '2',
+                "Address" TEXT,
+                "Contact" TEXT,
+                "Email" TEXT,
+                "Check In Time" TEXT DEFAULT '10:00:00',
+                "Check Out Time" TEXT DEFAULT '18:30:00',
+                "Required Hours" TEXT DEFAULT '7.0'
+            )
+        """)
+        
+        # Check existing columns in Companies and add any missing ones
+        cursor.execute("PRAGMA table_info(Companies)")
+        existing_cols = [col[1] for col in cursor.fetchall()]
+        
+        column_defs = {
+            "Check In Time": "TEXT DEFAULT '10:00:00'",
+            "Check Out Time": "TEXT DEFAULT '18:30:00'",
+            "Required Hours": "TEXT DEFAULT '7.0'",
+            "Leaves Per Month": "TEXT DEFAULT '2'",
+            "Address": "TEXT",
+            "Contact": "TEXT",
+            "Email": "TEXT"
+        }
+        for col_name, col_def in column_defs.items():
+            if col_name not in existing_cols:
+                try:
+                    cursor.execute(f'ALTER TABLE Companies ADD COLUMN "{col_name}" {col_def}')
+                except Exception as ex:
+                    logger.warning(f"Could not add column {col_name}: {ex}")
+
+        # Ensure Users table exists
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Users (
+                "Company ID" TEXT,
+                "User Name" TEXT
+            )
+        """)
+
+        # Ensure Leaves table exists
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Leaves (
+                "Company ID" TEXT,
+                "User Name" TEXT,
+                "Year-Month" TEXT,
+                "Leaves Allowed" INTEGER DEFAULT 2,
+                "Leaves Taken" INTEGER DEFAULT 0,
+                "Leaves Carried" INTEGER DEFAULT 0
+            )
+        """)
+        
+        conn.commit()
+    except Exception as e:
+        logger.error(f"Error initializing DB schema: {e}")
+    finally:
+        conn.close()
+
 
 def fetch_user_by_username(username):
     """

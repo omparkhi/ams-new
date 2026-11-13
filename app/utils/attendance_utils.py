@@ -703,7 +703,8 @@ from app.utils.performance_utils import measure_performance
 logger = logging.getLogger(__name__)
 
 # Adjust this path as needed
-DB_PATH = "sqlite_exports/attendance_data.db"
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+DB_PATH = os.path.join(BASE_DIR, "sqlite_exports", "attendance_data.db")
 
 india_offset = timedelta(hours=5, minutes=30)
 

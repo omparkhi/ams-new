@@ -51,20 +51,20 @@ export default function Hero() {
               <div data-w-id="b927c552-6a49-f05d-2177-9856ff7dab96" className="hero-buttons">
                 <Link
                   data-wf--hero-button--variant="hero"
-                  to="/pricing-v1"
+                  to="/signup"
                   className="hero-button w-inline-block"
                 >
                   <div className="hero-button-content-wrap">
-                    <p className="hero-button-text">Try Free Demo</p>
+                    <p className="hero-button-text">Start Free Trial →</p>
                   </div>
                 </Link>
                 <Link
                   data-wf--hero-button--variant="hero-v2"
-                  to="/book-a-demo"
+                  to="/login"
                   className="hero-button w-inline-block"
                 >
                   <div className="hero-button-content-wrap w-variant-445585f7-a63d-4c1c-6003-e9e77ad430a8">
-                    <p className="hero-button-text w-variant-445585f7-a63d-4c1c-6003-e9e77ad430a8">See It in Action</p>
+                    <p className="hero-button-text w-variant-445585f7-a63d-4c1c-6003-e9e77ad430a8">Sign In</p>
                   </div>
                 </Link>
               </div>
