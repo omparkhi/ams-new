@@ -9,8 +9,24 @@ export default function Navbar() {
   };
 
   return (
-    <section className="navbar" style={{ top: '30px' }}>
-      <section className="header">
+    <section
+      className="navbar"
+      style={{
+        top: '30px',
+        background: 'transparent',
+        backgroundColor: 'transparent',
+        border: 'none',
+        boxShadow: 'none',
+      }}
+    >
+      <section
+        className="header"
+        style={{
+          background: 'transparent',
+          backgroundColor: 'transparent',
+          border: 'none',
+        }}
+      >
         <div className="w-layout-blockcontainer navbar-container w-container">
           <div
             data-animation="default"
@@ -20,6 +36,11 @@ export default function Navbar() {
             data-easing2="ease"
             role="banner"
             className="navbar-black w-nav"
+            style={{
+              background: 'transparent',
+              backgroundColor: 'transparent',
+              border: 'none',
+            }}
           >
             <div className="w-layout-blockcontainer navbar-container w-container">
               <div className="header-content">
@@ -54,7 +75,9 @@ export default function Navbar() {
                   <Link to="/pricing-v1" onClick={closeMenus} className="nav-link gap-top w-nav-link">Pricing</Link>
                   <Link to="/about" onClick={closeMenus} className="nav-link gap-top w-nav-link">About</Link>
                   <Link to="/contact" onClick={closeMenus} className="nav-link w-nav-link">Contact</Link>
-                  <Link to="/login" onClick={closeMenus} className="nav-link w-nav-link" style={{ color: '#60A5FA', fontWeight: '600' }}>Sign In</Link>
+                  {mobileMenuOpen && (
+                    <Link to="/login" onClick={closeMenus} className="nav-link w-nav-link" style={{ color: '#60A5FA', fontWeight: '600' }}>Sign In</Link>
+                  )}
                 </nav>
 
                 {/* Header CTA Buttons */}

@@ -1,6 +1,8 @@
 /* Exact CSS theme ported from original HTML templates (admin_panel.html, add_user.html, login.html) */
 
-* {
+.ams-app-container,
+.ams-login-wrapper,
+.ams-signup-wrapper {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -13,8 +15,9 @@
   min-height: 100vh;
 }
 
-/* Navigation Bar from admin_panel.html */
-.navbar {
+/* Navigation Bar from admin_panel.html - scoped to AMS app portal only */
+.ams-navbar,
+.ams-app-container .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -23,21 +26,25 @@
   border-bottom: 1px solid #2C3E50;
 }
 
-.navbar .logo {
+.ams-navbar .logo,
+.ams-app-container .navbar .logo {
   font-size: 1.5rem;
   font-weight: bold;
   color: #fff;
   text-decoration: none;
 }
 
-.navbar .nav-links {
+.ams-navbar .nav-links,
+.ams-app-container .navbar .nav-links {
   display: flex;
   gap: 20px;
   align-items: center;
 }
 
-.navbar .nav-links a,
-.navbar .nav-links button {
+.ams-navbar .nav-links a,
+.ams-navbar .nav-links button,
+.ams-app-container .navbar .nav-links a,
+.ams-app-container .navbar .nav-links button {
   color: #fff;
   text-decoration: none;
   font-size: 1rem;
@@ -50,31 +57,38 @@
   transition: color 0.2s, background-color 0.2s;
 }
 
-.navbar .nav-links a:hover,
-.navbar .nav-links button:hover {
+.ams-navbar .nav-links a:hover,
+.ams-navbar .nav-links button:hover,
+.ams-app-container .navbar .nav-links a:hover,
+.ams-app-container .navbar .nav-links button:hover {
   color: #28A745;
 }
 
-.navbar .nav-links a.active,
-.navbar .nav-links button.active {
+.ams-navbar .nav-links a.active,
+.ams-navbar .nav-links button.active,
+.ams-app-container .navbar .nav-links a.active,
+.ams-app-container .navbar .nav-links button.active {
   background-color: #2C3E50;
   color: #28A745;
 }
 
-.navbar .company-info {
+.ams-navbar .company-info,
+.ams-app-container .navbar .company-info {
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: 0.95rem;
 }
 
-.navbar .company-info a {
+.ams-navbar .company-info a,
+.ams-app-container .navbar .company-info a {
   color: #fff;
   text-decoration: none;
   font-size: 1rem;
 }
 
-.navbar .company-info a:hover {
+.ams-navbar .company-info a:hover,
+.ams-app-container .navbar .company-info a:hover {
   color: #DC3545;
 }
 
