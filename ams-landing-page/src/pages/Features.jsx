@@ -33,11 +33,17 @@ export default function Features() {
                       Replace fragile biometric fingerprint scanners and inaccurate paper rosters with instant browser-based facial recognition, automated shift calculations, and multi-tenant department control.
                     </p>
                   </div>
-                  <Link data-wf--hero-button--variant="features" to="/book-a-demo" className="hero-button w-inline-block">
+                  <a
+                    data-wf--hero-button--variant="features"
+                    href="https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hero-button w-inline-block"
+                  >
                     <div className="hero-button-content-wrap w-variant-2e2d7156-bf71-2b94-02c0-7d61d44d2e9b">
                       <p className="hero-button-text w-variant-2e2d7156-bf71-2b94-02c0-7d61d44d2e9b">Schedule A Live Demo</p>
                     </div>
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>

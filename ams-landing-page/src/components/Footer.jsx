@@ -24,15 +24,17 @@ export default function Footer() {
                     <p className="hero-button-text">Start Free Trial</p>
                   </div>
                 </Link>
-                <Link
+                <a
                   data-wf--hero-button--variant="hero-v2"
-                  to="/book-a-demo"
+                  href="https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="hero-button w-inline-block"
                 >
                   <div className="hero-button-content-wrap w-variant-445585f7-a63d-4c1c-6003-e9e77ad430a8">
                     <p className="hero-button-text w-variant-445585f7-a63d-4c1c-6003-e9e77ad430a8">Book A Live Demo</p>
                   </div>
-                </Link>
+                </a>
               </div>
             </div>
 
@@ -64,7 +66,7 @@ export default function Footer() {
                     <div className="navitem-wrapper">
                       <p className="navitem-default-title">Resources</p>
                       <div className="navitem-list footer">
-                        <Link to="/book-a-demo" className="navtext">Book Demo</Link>
+                        <a href="https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter" target="_blank" rel="noopener noreferrer" className="navtext">Book Demo</a>
                         <Link to="/case-study" className="navtext">Case Studies</Link>
                         <Link to="/review" className="navtext">Reviews</Link>
                         <Link to="/contact" className="navtext">Contact</Link>

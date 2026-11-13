@@ -43,9 +43,9 @@ export default function PricingV2() {
                         </div>
                       </div>
                       <div className="pricing-button-features">
-                        <Link to="/book-a-demo" data-wf--hero-button--variant="features" className="hero-button w-inline-block">
+                        <a href="https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter" target="_blank" rel="noopener noreferrer" data-wf--hero-button--variant="features" className="hero-button w-inline-block">
                           <div className="hero-button-content-wrap w-variant-2e2d7156-bf71-2b94-02c0-7d61d44d2e9b"><p className="hero-button-text w-variant-2e2d7156-bf71-2b94-02c0-7d61d44d2e9b">Start Free Trial</p></div>
-                        </Link>
+                        </a>
                         <div className="pricing-features-lists">
                           <p className="body-16-medium">Features</p>
                           <div className="pricing-card-features">
@@ -70,9 +70,9 @@ export default function PricingV2() {
                         </div>
                       </div>
                       <div className="pricing-button-features">
-                        <Link to="/book-a-demo" data-wf--hero-button--variant="features" className="hero-button w-inline-block">
+                        <a href="https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter" target="_blank" rel="noopener noreferrer" data-wf--hero-button--variant="features" className="hero-button w-inline-block">
                           <div className="hero-button-content-wrap w-variant-2e2d7156-bf71-2b94-02c0-7d61d44d2e9b"><p className="hero-button-text w-variant-2e2d7156-bf71-2b94-02c0-7d61d44d2e9b">Get Started</p></div>
-                        </Link>
+                        </a>
                         <div className="pricing-features-lists">
                           <p className="body-16-medium">Features</p>
                           <div className="pricing-card-features">
@@ -98,9 +98,9 @@ export default function PricingV2() {
                         </div>
                       </div>
                       <div className="pricing-button-features">
-                        <Link to="/book-a-demo" data-wf--hero-button--variant="features" className="hero-button w-inline-block">
+                        <a href="https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter" target="_blank" rel="noopener noreferrer" data-wf--hero-button--variant="features" className="hero-button w-inline-block">
                           <div className="hero-button-content-wrap w-variant-2e2d7156-bf71-2b94-02c0-7d61d44d2e9b"><p className="hero-button-text w-variant-2e2d7156-bf71-2b94-02c0-7d61d44d2e9b">Contact Sales</p></div>
-                        </Link>
+                        </a>
                         <div className="pricing-features-lists">
                           <p className="body-16-medium">Features</p>
                           <div className="pricing-card-features">

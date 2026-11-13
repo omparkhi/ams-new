@@ -52,16 +52,18 @@ export default function Hero() {
                 data-w-id="b927c552-6a49-f05d-2177-9856ff7dab96"
                 className="hero-buttons hero-buttons-single"
               >
-                <Link
+                <a
                   data-wf--hero-button--variant="hero"
-                  to="/book-a-demo"
+                  href="https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="hero-button w-inline-block"
                   style={{ textDecoration: 'none' }}
                 >
                   <div className="hero-button-content-wrap">
                     <p className="hero-button-text">Book a Demo</p>
                   </div>
-                </Link>
+                </a>
 
                 {/* Hand-drawn "Connect with a team" Callout */}
                 <div className="hero-connect-team-callout">

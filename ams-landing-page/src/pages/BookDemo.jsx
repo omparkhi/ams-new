@@ -16,7 +16,7 @@ export default function BookDemo() {
   });
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.location.href = 'https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter';
   }, []);
 
   const handleBooking = (e) => {

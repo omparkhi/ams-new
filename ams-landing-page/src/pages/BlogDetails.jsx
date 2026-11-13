@@ -89,9 +89,9 @@ export default function BlogDetails() {
             <div style={{ backgroundColor: '#f8fafc', padding: '24px', borderRadius: '12px', borderLeft: '4px solid #2563eb', marginTop: '30px' }}>
               <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>
                 Ready to eliminate attendance fraud in your institution?{' '}
-                <Link to="/book-a-demo" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                <a href="https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
                   Schedule a live interactive walkthrough with our team.
-                </Link>
+                </a>
               </p>
             </div>
           </div>

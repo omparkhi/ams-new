@@ -1,6 +1,6 @@
 // Centralized API client for AMS SaaS
 const getBaseUrl = () => {
-  let url = (import.meta.env.VITE_API_URL || 'https://ams-backend-new.vercel.app').trim().replace(/\/+$/, '');
+  let url = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api').trim().replace(/\/+$/, '');
   // If the URL does not end with /api, append it automatically
   if (!url.endsWith('/api')) {
     url = `${url}/api`;

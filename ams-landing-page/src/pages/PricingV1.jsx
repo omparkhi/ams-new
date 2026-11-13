@@ -275,9 +275,11 @@ export default function PricingV1() {
                         </div>
 
                         <div className="pricing-button-features">
-                          <Link
+                          <a
                             data-wf--hero-button--variant="features"
-                            to="/book-a-demo"
+                            href="https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="hero-button w-inline-block"
                           >
                             <div className="hero-button-content-wrap w-variant-2e2d7156-bf71-2b94-02c0-7d61d44d2e9b">
@@ -285,7 +287,7 @@ export default function PricingV1() {
                                 {plan.buttonText}
                               </p>
                             </div>
-                          </Link>
+                          </a>
 
                           <div className="pricing-features-lists">
                             <p className="body-16-medium">Features you get</p>

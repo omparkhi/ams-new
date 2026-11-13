@@ -92,15 +92,8 @@ if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME')
     tmp_db = os.path.join(tmp_db_dir, "attendance_data.db")
     try:
         os.makedirs(tmp_db_dir, exist_ok=True)
-        if os.path.exists(DB_PATH):
-            should_copy = not os.path.exists(tmp_db)
-            if not should_copy:
-                try:
-                    should_copy = (os.path.getmtime(DB_PATH) > os.path.getmtime(tmp_db)) or (os.path.getsize(DB_PATH) != os.path.getsize(tmp_db))
-                except Exception:
-                    should_copy = False
-            if should_copy:
-                shutil.copy2(DB_PATH, tmp_db)
+        if not os.path.exists(tmp_db) and os.path.exists(DB_PATH):
+            shutil.copy2(DB_PATH, tmp_db)
         if os.path.exists(tmp_db):
             DB_PATH = tmp_db
     except Exception as e:

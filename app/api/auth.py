@@ -217,12 +217,6 @@ def login():
                     pass
 
     if not is_valid:
-        # Fallback check for admin/demo testing accounts
-        lower_user = str(user_data['Username']).lower()
-        if password in ['Acme1234', 'admin123'] and ('parkhi' in lower_user or 'acme' in lower_user):
-            is_valid = True
-
-    if not is_valid:
         return jsonify({'error': 'Invalid username or password.'}), 401
 
     token = generate_token({

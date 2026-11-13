@@ -36,11 +36,11 @@ export default function About() {
                         <p className="hero-button-text">See Features</p>
                       </div>
                     </Link>
-                    <Link to="/book-a-demo" className="hero-button w-inline-block" style={{ backgroundColor: '#fff', border: '1px solid #cbd5e1' }}>
+                    <a href="https://tarsbookademoapp.vercel.app/demo/tars-attendify-newsletter" target="_blank" rel="noopener noreferrer" className="hero-button w-inline-block" style={{ backgroundColor: '#fff', border: '1px solid #cbd5e1', textDecoration: 'none' }}>
                       <div className="hero-button-content-wrap">
                         <p className="hero-button-text" style={{ color: '#0f172a' }}>Book Demo</p>
                       </div>
-                    </Link>
+                    </a>
                   </div>
                 </div>
               </div>
