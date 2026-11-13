@@ -47,27 +47,74 @@ export default function Hero() {
                 Instant contactless check-in for students, interns, and teams. Runs on any phone, tablet, or laptop camera. Zero hardware, zero proxy sign-ins.
               </p>
 
-              {/* Clean CTA Buttons */}
-              <div data-w-id="b927c552-6a49-f05d-2177-9856ff7dab96" className="hero-buttons">
+              {/* Clean CTA Button - Centered Book a Demo + "Connect with a team" Callout */}
+              <div
+                data-w-id="b927c552-6a49-f05d-2177-9856ff7dab96"
+                className="hero-buttons hero-buttons-single"
+              >
                 <Link
                   data-wf--hero-button--variant="hero"
-                  to="/signup"
+                  to="/book-a-demo"
                   className="hero-button w-inline-block"
+                  style={{ textDecoration: 'none' }}
                 >
                   <div className="hero-button-content-wrap">
-                    <p className="hero-button-text">Start Free Trial →</p>
+                    <p className="hero-button-text">Book a Demo</p>
                   </div>
                 </Link>
-                <Link
-                  data-wf--hero-button--variant="hero-v2"
-                  to="/login"
-                  className="hero-button w-inline-block"
-                >
-                  <div className="hero-button-content-wrap w-variant-445585f7-a63d-4c1c-6003-e9e77ad430a8">
-                    <p className="hero-button-text w-variant-445585f7-a63d-4c1c-6003-e9e77ad430a8">Sign In</p>
-                  </div>
-                </Link>
+
+                {/* Hand-drawn "Connect with a team" Callout Illustration */}
+                <div className="hero-connect-team-callout">
+                  <img
+                    src="/images/connect-with-team.png"
+                    srcSet="/images/connect-with-team.png 1x, /images/connect-with-team@2x.png 2x"
+                    alt="Connect with a team"
+                    loading="lazy"
+                  />
+                </div>
               </div>
+
+              <style>{`
+                .hero-buttons-single {
+                  display: flex !important;
+                  justify-content: center !important;
+                  align-items: center !important;
+                  position: relative !important;
+                  margin-top: 14px !important;
+                  margin-bottom: 6px !important;
+                }
+                .hero-connect-team-callout {
+                  position: absolute;
+                  left: calc(50% + 95px);
+                  top: -26px;
+                  pointer-events: none;
+                  user-select: none;
+                  z-index: 10;
+                }
+                .hero-connect-team-callout img {
+                  max-width: 185px;
+                  height: auto;
+                  display: block;
+                  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+                }
+                @media (max-width: 767px) {
+                  .hero-buttons-single {
+                    flex-direction: column !important;
+                    align-items: center !important;
+                  }
+                  .hero-connect-team-callout {
+                    position: static !important;
+                    left: auto !important;
+                    top: auto !important;
+                    margin-top: 8px;
+                    display: flex;
+                    justify-content: center;
+                  }
+                  .hero-connect-team-callout img {
+                    max-width: 155px !important;
+                  }
+                }
+              `}</style>
 
               {/* Crisp Benefits - White text & White Verified Badge */}
               <div
