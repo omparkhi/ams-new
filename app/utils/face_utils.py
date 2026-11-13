@@ -18,6 +18,12 @@ def load_encodings(company_id):
         # Handle both versions: one with spaces and one with underscores
         base_dir = os.path.dirname(os.path.abspath(__file__))  # directory of face.py
         encodings_dir = os.path.join(base_dir, '..', 'encodings')  # go up one folder, then into encodings
+        if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
+            tmp_enc = '/tmp/encodings'
+            os.makedirs(tmp_enc, exist_ok=True)
+            # Check /tmp first if saved in session
+            if os.path.exists(os.path.join(tmp_enc, f'face_encodings_{company_id_norm}.pkl')):
+                encodings_dir = tmp_enc
 
         encodings_file_underscore = os.path.join(encodings_dir, f'face_encodings_{company_id_norm}.pkl')
         encodings_file_space = os.path.join(encodings_dir, f'face_encodings_{company_id}.pkl')
@@ -89,6 +95,9 @@ def save_encodings(company_id, data):
         company_id = company_id.replace(" ", "_")
         base_dir = os.path.dirname(os.path.abspath(__file__))  # directory of face.py
         encodings_dir = os.path.join(base_dir, '..', 'encodings')  # go up one folder, then into encodings
+        if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
+            encodings_dir = '/tmp/encodings'
+        os.makedirs(encodings_dir, exist_ok=True)
 
         encodings_file = os.path.join(encodings_dir, f'face_encodings_{company_id}.pkl')
         encodings_file = os.path.normpath(encodings_file)  # normalize path

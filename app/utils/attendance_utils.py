@@ -13,7 +13,15 @@ from app.utils.face_utils import load_encodings, parse_time_range  # assuming yo
 
 SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 IMAGES_DIR = 'images'
-TEMP_CHECKIN_IMAGES_DIR = "temp_checkin_images"  # adjust this if different
+if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
+    TEMP_CHECKIN_IMAGES_DIR = "/tmp/temp_checkin_images"
+else:
+    TEMP_CHECKIN_IMAGES_DIR = "temp_checkin_images"
+
+try:
+    os.makedirs(TEMP_CHECKIN_IMAGES_DIR, exist_ok=True)
+except Exception:
+    pass
 logger = logging.getLogger(__name__)
 # # india_offset = timedelta(hours=5, minutes=30)
 

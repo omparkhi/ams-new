@@ -84,6 +84,21 @@ import logging
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DB_PATH = os.path.join(BASE_DIR, "sqlite_exports", "attendance_data.db")
 
+# In serverless environments (like Vercel), the filesystem outside of /tmp is read-only.
+# Copy database to /tmp so read/write queries succeed without permission errors.
+if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
+    import shutil
+    tmp_db_dir = "/tmp/sqlite_exports"
+    tmp_db = os.path.join(tmp_db_dir, "attendance_data.db")
+    try:
+        os.makedirs(tmp_db_dir, exist_ok=True)
+        if not os.path.exists(tmp_db) and os.path.exists(DB_PATH):
+            shutil.copy2(DB_PATH, tmp_db)
+        if os.path.exists(tmp_db):
+            DB_PATH = tmp_db
+    except Exception as e:
+        logging.getLogger(__name__).warning(f"Could not copy database to /tmp: {e}")
+
 # Set up logging
 logger = logging.getLogger(__name__)
 
