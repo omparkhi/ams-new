@@ -63,6 +63,22 @@ def create_app():
     # Ensure database schema is initialized with shift columns & tables
     init_db_schema()
 
+    # Health & Version Check Endpoint (for Render deployment verification)
+    @app.route('/health', methods=['GET'])
+    @app.route('/api/health', methods=['GET'])
+    def health_check():
+        import datetime
+        from app.utils.face_utils import get_face_pipeline
+        det, rec = get_face_pipeline()
+        return jsonify({
+            'status': 'healthy',
+            'version': '2.4.0',
+            'biometric_engine': 'OpenCV YuNet + SFace' if (det and rec) else 'Spatial Gradient Fallback',
+            'models_loaded': bool(det and rec),
+            'database': 'PostgreSQL' if os.environ.get('DATABASE_URL') else 'SQLite',
+            'timestamp': datetime.datetime.now().isoformat()
+        }), 200
+
     # Register Modern SaaS REST API Blueprint (registered at both /api and root / for resilience)
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(api_bp, name='api_root_bp')
