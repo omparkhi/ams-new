@@ -8,41 +8,48 @@
 :root {
   /* Exact Landing Page Typography (--all-font-family--primary-font) */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  
+
   /* Exact Landing Page Backgrounds */
   --bg-app: #F8F9FD;
   --bg-card: #FFFFFF;
   --bg-subtle: #F3F3F7;
-  
+
   /* Exact Landing Page Color Tokens */
-  --primary: #7268EA;                 /* --all-color--theme-color-01: signature soft purple */
+  --primary: #7268EA;
+  /* --all-color--theme-color-01: signature soft purple */
   --primary-hover: #5F54E0;
   --primary-light: #F0EFFF;
   --primary-soft: rgba(114, 104, 234, 0.08);
-  
-  --accent-amber: #F9CB33;            /* --all-color--theme-color-02: signature warm yellow */
+
+  --accent-amber: #F9CB33;
+  /* --all-color--theme-color-02: signature warm yellow */
   --accent-amber-light: #FFF9E6;
-  --accent-coral: #FF683F;            /* --all-color--theme-color-03: coral */
-  
+  --accent-coral: #FF683F;
+  /* --all-color--theme-color-03: coral */
+
   /* Status Colors (Soft, Modern, High-Legibility) */
   --success: #10B981;
   --success-light: #ECFDF5;
   --danger: #EF4444;
   --danger-light: #FEF2F2;
-  
+
   /* Exact Landing Page Typography Colors (NOT pitch-black!) */
-  --text-heading: #322B80;            /* --all-color--neutral-04: elegant deep indigo */
-  --text-main: #3F3C64;               /* Comfortable body text */
-  --text-muted: #565479;              /* --all-color--neutral-03: refined muted slate-lavender */
-  --text-subtle: #8E8CA8;             /* Light captions and hints */
-  
+  --text-heading: #322B80;
+  /* --all-color--neutral-04: elegant deep indigo */
+  --text-main: #3F3C64;
+  /* Comfortable body text */
+  --text-muted: #565479;
+  /* --all-color--neutral-03: refined muted slate-lavender */
+  --text-subtle: #8E8CA8;
+  /* Light captions and hints */
+
   /* Clean Borders & Shadows */
   --border-color: #EAEBF2;
   --border-subtle: #F0F1F6;
   --shadow-sm: 0 1px 3px rgba(50, 43, 128, 0.03), 0 1px 2px rgba(50, 43, 128, 0.02);
   --shadow-card: 0 4px 20px -2px rgba(114, 104, 234, 0.05), 0 1px 4px rgba(50, 43, 128, 0.02);
   --shadow-hover: 0 12px 28px -4px rgba(114, 104, 234, 0.10), 0 4px 10px -2px rgba(50, 43, 128, 0.03);
-  
+
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
@@ -134,9 +141,7 @@ body {
 }
 
 .sidebar-brand-logo {
-  height: 38px;
-  max-width: 165px;
-  width: auto;
+  height: 37px;
   display: block;
   margin: 0 auto;
   object-fit: contain;
@@ -1218,19 +1223,21 @@ body {
    CAMERA KIOSK & ENROLLMENT STYLES
    ========================================================================== */
 .kiosk-card-modern {
-  max-width: 680px;
+  max-width: 480px;
   margin: 0 auto;
+  padding: 20px 24px;
   text-align: center;
 }
 
 .video-view-wrap {
   position: relative;
   width: 100%;
-  max-width: 580px;
-  margin: 18px auto;
+  max-width: 360px;
+  max-height: 270px;
+  margin: 10px auto;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(50, 43, 128, 0.08);
+  box-shadow: 0 10px 25px rgba(50, 43, 128, 0.08);
   background: #000;
   aspect-ratio: 4 / 3;
 }
@@ -1247,12 +1254,179 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(220px, 60vw);
-  height: min(280px, 75vw);
-  max-height: 80%;
-  border: 2px dashed rgba(255, 255, 255, 0.65);
+  width: min(150px, 45vw);
+  height: min(190px, 58vw);
+  max-height: 82%;
+  border: 2px dashed rgba(255, 255, 255, 0.75);
   border-radius: 50% 50% 45% 45%;
   pointer-events: none;
+}
+
+/* ==========================================================================
+   ATTENDANCE SUCCESS ANIMATED POPUP MODAL
+   ========================================================================== */
+.attendance-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2500;
+  animation: fadeInPopup 0.25s ease-out forwards;
+}
+
+.attendance-popup-card {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 32px 28px 24px 28px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 25px 60px -15px rgba(50, 43, 128, 0.3), 0 0 0 1px rgba(104, 87, 223, 0.08);
+  transform-origin: center center;
+  animation: popInModal 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  overflow: hidden;
+}
+
+@keyframes fadeInPopup {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.attendance-tick-circle {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 16px auto;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.22) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: checkmarkPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes checkmarkPop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.attendance-tick-svg {
+  width: 48px;
+  height: 48px;
+}
+
+.attendance-tick-svg circle {
+  stroke: #10B981;
+  stroke-width: 2.5;
+  fill: none;
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: strokeDraw 0.6s cubic-bezier(0.65, 0, 0.45, 1) 0.1s forwards;
+}
+
+.attendance-tick-svg path {
+  stroke: #10B981;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: strokeDraw 0.45s cubic-bezier(0.65, 0, 0.45, 1) 0.45s forwards;
+}
+
+@keyframes strokeDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.attendance-popup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.attendance-popup-badge.checkin {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.attendance-popup-badge.checkout {
+  background: rgba(104, 87, 223, 0.12);
+  color: #6857DF;
+  border: 1px solid rgba(104, 87, 223, 0.25);
+}
+
+.attendance-popup-badge.info {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.attendance-popup-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.attendance-popup-time {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.attendance-popup-msg {
+  font-size: 0.85rem;
+  color: #64748B;
+  line-height: 1.45;
+  margin: 0 0 18px 0;
+  padding: 8px 14px;
+  background: #F8FAFC;
+  border-radius: 10px;
+  border: 1px solid #EDF2F7;
+}
+
+.attendance-popup-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #10B981, #6857DF);
+  width: 100%;
+  animation: countdownBar 3.8s linear forwards;
+}
+
+@keyframes countdownBar {
+  from { width: 100%; }
+  to { width: 0%; }
 }
 
 /* Modal Backdrops */
@@ -1292,7 +1466,7 @@ body {
 .modern-auth-body {
   min-height: 100vh;
   background-color: var(--bg-app);
-  background-image: 
+  background-image:
     radial-gradient(at 50% 0%, rgba(114, 104, 234, 0.12) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(249, 203, 51, 0.06) 0px, transparent 40%),
     radial-gradient(at 0% 100%, rgba(114, 104, 234, 0.05) 0px, transparent 40%);
@@ -1416,8 +1590,15 @@ body {
 }
 
 @keyframes authAlertFadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Section Separator & Badge */
@@ -1524,6 +1705,7 @@ body {
 }
 
 @media (max-width: 600px) {
+
   .modern-auth-grid-2,
   .modern-auth-grid-3 {
     grid-template-columns: 1fr;
@@ -2518,4 +2700,3 @@ body {
     padding: 20px 30px !important;
   }
 }
-

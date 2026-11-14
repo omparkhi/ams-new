@@ -31,6 +31,17 @@ export default function UnifiedAdminPanel() {
   const [modalImage, setModalImage] = useState(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [attendanceSuccessModal, setAttendanceSuccessModal] = useState(null);
+
+  // Auto-dismiss attendance success popup after 3.8s
+  useEffect(() => {
+    if (attendanceSuccessModal) {
+      const timer = setTimeout(() => {
+        setAttendanceSuccessModal(null);
+      }, 3800);
+      return () => clearTimeout(timer);
+    }
+  }, [attendanceSuccessModal]);
 
   // Settings form state
   const [companyInfo, setCompanyInfo] = useState({
@@ -175,10 +186,22 @@ export default function UnifiedAdminPanel() {
     const imageData = canvas.toDataURL('image/jpeg', 0.80);
 
     try {
-      const result = await api.scanKiosk(imageData, selectedKioskStudent);
+      const result = await api.scanKiosk(imageData, '');
       setWebcamStatus(result.message || 'Action completed');
       if (result.name && result.name !== 'Unknown') {
         setRecognizedName(`✓ Recognized: ${result.name}`);
+        const isCheckout = result.status === 'checkout_success';
+        const isCompleted = result.status === 'already_completed';
+        const timeVal = result.checkin_time || result.checkout_time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        setAttendanceSuccessModal({
+          open: true,
+          name: result.name,
+          type: isCheckout ? 'checkout' : isCompleted ? 'info' : 'checkin',
+          time: timeVal,
+          statusBadge: result.day_status || (isCheckout ? 'Check-Out Recorded' : isCompleted ? 'Attendance Completed' : 'Check-In Recorded'),
+          message: result.message || 'Biometric attendance verified successfully!'
+        });
       }
       await loadDashboardData();
     } catch (err) {
@@ -194,7 +217,15 @@ export default function UnifiedAdminPanel() {
     if (!window.confirm(`Check in ${name} now?`)) return;
     try {
       const res = await api.forceCheckin(name);
-      alert(res.message || `Checked in ${name} successfully!`);
+      const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setAttendanceSuccessModal({
+        open: true,
+        name: name,
+        type: 'checkin',
+        time: currentTime,
+        statusBadge: 'Manual Check-In',
+        message: res?.message || `Checked in ${name} successfully!`
+      });
       await loadDashboardData();
     } catch (err) {
       alert(err.message || 'Failed to check in student.');
@@ -263,7 +294,16 @@ export default function UnifiedAdminPanel() {
   const handleForceCheckout = async (name) => {
     if (!window.confirm(`Force check-out for ${name} now?`)) return;
     try {
-      await api.forceCheckout(name);
+      const res = await api.forceCheckout(name);
+      const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setAttendanceSuccessModal({
+        open: true,
+        name: name,
+        type: 'checkout',
+        time: currentTime,
+        statusBadge: 'Manual Check-Out',
+        message: res?.message || `Checked out ${name} successfully!`
+      });
       await loadDashboardData();
     } catch (err) {
       alert(err.message || 'Failed to force checkout.');
@@ -1275,9 +1315,9 @@ export default function UnifiedAdminPanel() {
               ========================================================================== */}
           {activeTab === 'mark-attendance' && (
             <div className="modern-card kiosk-card-modern">
-              <h3 className="card-title" style={{ fontSize: '1.4rem' }}>Biometric Face Attendance</h3>
-              <p className="card-subtitle" style={{ maxWidth: '440px', margin: '4px auto 16px auto' }}>
-                Look directly into the camera with clear lighting. The system matches your 128-d face embedding automatically.
+              <h3 className="card-title" style={{ fontSize: '1.25rem', marginBottom: '3px' }}>Biometric Face Attendance</h3>
+              <p className="card-subtitle" style={{ maxWidth: '420px', margin: '0 auto 10px auto', fontSize: '0.82rem' }}>
+                Look directly into the camera with clear lighting for instant biometric verification.
               </p>
 
               <div className="video-view-wrap">
@@ -1286,48 +1326,35 @@ export default function UnifiedAdminPanel() {
               </div>
               <canvas ref={canvasRef} style={{ display: 'none' }} />
 
-              <div style={{ maxWidth: '380px', margin: '14px auto', textAlign: 'left' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.82rem', fontWeight: '600', color: '#64748B' }}>
-                  Student Override (Optional):
-                </label>
-                <select
-                  value={selectedKioskStudent}
-                  onChange={(e) => setSelectedKioskStudent(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
-                    border: '1px solid #E2E8F0',
-                    fontSize: '0.9rem',
-                    backgroundColor: '#FFFFFF',
-                    color: '#0F172A',
-                    outline: 'none'
-                  }}
-                >
-                  <option value="">-- Automatic Facial Recognition Match --</option>
-                  {students.map((s) => (
-                    <option key={s.name} value={s.name}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-
               <button
                 className="btn-solid-primary"
                 onClick={handleCaptureAttendance}
                 disabled={isProcessing || !streamActive}
-                style={{ margin: '12px auto', padding: '12px 32px', fontSize: '1rem', borderRadius: '12px' }}
+                style={{
+                  margin: '10px auto 4px auto',
+                  padding: '10px 28px',
+                  fontSize: '0.94rem',
+                  borderRadius: '12px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
               >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
                 {isProcessing ? 'Verifying Biometrics...' : 'Capture Image & Mark Attendance'}
               </button>
 
-              <p style={{ marginTop: '12px', fontSize: '0.88rem', color: '#64748B' }}>{webcamStatus}</p>
+              <p style={{ marginTop: '8px', fontSize: '0.82rem', color: '#64748B' }}>{webcamStatus}</p>
               {recognizedName && (
-                <div style={{ marginTop: '8px', color: '#10B981', fontWeight: '700', fontSize: '1.05rem' }}>
+                <div style={{ marginTop: '4px', color: '#10B981', fontWeight: '700', fontSize: '0.95rem' }}>
                   {recognizedName}
                 </div>
               )}
               {webcamError && (
-                <div style={{ marginTop: '8px', color: '#EF4444', fontSize: '0.88rem' }}>
+                <div style={{ marginTop: '4px', color: '#EF4444', fontSize: '0.82rem' }}>
                   {webcamError}
                 </div>
               )}
@@ -2507,6 +2534,64 @@ export default function UnifiedAdminPanel() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================================================
+          MODAL: ATTENDANCE SUCCESS ANIMATED VERIFICATION POPUP
+          ========================================================================== */}
+      {attendanceSuccessModal && (
+        <div className="attendance-popup-overlay" onClick={() => setAttendanceSuccessModal(null)}>
+          <div className="attendance-popup-card" onClick={(e) => e.stopPropagation()}>
+            <div className="attendance-tick-circle">
+              <svg className="attendance-tick-svg" viewBox="0 0 52 52">
+                <circle cx="26" cy="26" r="25" />
+                <path d="M14 27l7 7 17-17" />
+              </svg>
+            </div>
+
+            <div className={`attendance-popup-badge ${attendanceSuccessModal.type}`}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              {attendanceSuccessModal.type === 'checkout'
+                ? 'Check-Out Verified'
+                : attendanceSuccessModal.type === 'info'
+                ? 'Attendance Status'
+                : 'Check-In Verified'}
+            </div>
+
+            <h3 className="attendance-popup-name">{attendanceSuccessModal.name}</h3>
+
+            {attendanceSuccessModal.time && (
+              <div className="attendance-popup-time">
+                Recorded at {attendanceSuccessModal.time}
+              </div>
+            )}
+
+            {attendanceSuccessModal.statusBadge && (
+              <div style={{ marginBottom: '10px' }}>
+                <span className="badge-status present" style={{ fontSize: '0.78rem', padding: '3px 10px' }}>
+                  {attendanceSuccessModal.statusBadge}
+                </span>
+              </div>
+            )}
+
+            <p className="attendance-popup-msg">
+              {attendanceSuccessModal.message}
+            </p>
+
+            <button
+              type="button"
+              className="btn-solid-primary"
+              onClick={() => setAttendanceSuccessModal(null)}
+              style={{ width: '100%', padding: '10px 20px', borderRadius: '12px', fontSize: '0.92rem' }}
+            >
+              Continue
+            </button>
+
+            <div className="attendance-popup-progress" />
           </div>
         </div>
       )}
