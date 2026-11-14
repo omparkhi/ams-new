@@ -1,51 +1,122 @@
 """
 Database utilities and multi-tenant schema manager for AMS Cloud.
-Supports both SQLite (local development and persistent container volumes)
-and PostgreSQL (enterprise production deployments via DATABASE_URL).
+100% Pure PostgreSQL architecture for development and production (Render).
 """
 
 import os
-import sqlite3
+import psycopg2
 import logging
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-DB_PATH = os.environ.get('DB_PATH') or os.path.join(BASE_DIR, "sqlite_exports", "attendance_data.db")
-os.makedirs(os.path.dirname(os.path.abspath(DB_PATH)), exist_ok=True)
+# Default to local PostgreSQL on Windows; Render injects DATABASE_URL automatically
+DATABASE_URL = os.environ.get('DATABASE_URL') or 'postgresql://postgres:root@localhost:5432/attendify_db'
 
-# In serverless environments (like Vercel), copy db to /tmp if needed
-if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
-    import shutil
-    tmp_db_dir = "/tmp/sqlite_exports"
-    tmp_db = os.path.join(tmp_db_dir, "attendance_data.db")
-    try:
-        os.makedirs(tmp_db_dir, exist_ok=True)
-        if not os.path.exists(tmp_db) and os.path.exists(DB_PATH):
-            shutil.copy2(DB_PATH, tmp_db)
-        if os.path.exists(tmp_db):
-            DB_PATH = tmp_db
-    except Exception as e:
-        logger.warning(f"Could not copy database to /tmp: {e}")
+
+class DBRow(dict):
+    """
+    Hybrid Row object allowing column access by:
+    - Exact column name: row['Company ID']
+    - Lowercase column name: row['company id']
+    - Snake case column name: row['company_id']
+    - Integer column index: row[0], row[1]
+    - Dict methods: row.get('key'), dict(row)
+    """
+    def __init__(self, description, values):
+        super().__init__()
+        self._values = tuple(values)
+        if description:
+            for i, col in enumerate(description):
+                col_name = col.name if hasattr(col, 'name') else col[0]
+                val = values[i]
+                self[col_name] = val
+                self[col_name.lower()] = val
+                self[col_name.replace(' ', '_').lower()] = val
+
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            return self._values[item]
+        return super().__getitem__(item)
+
+
+class PGCursorWrapper:
+    def __init__(self, cursor):
+        self._cursor = cursor
+
+    def execute(self, query, params=None):
+        if isinstance(query, str) and '?' in query and params is not None:
+            # Safely replace unescaped ? with %s for PostgreSQL compatibility
+            query = query.replace('?', '%s')
+        return self._cursor.execute(query, params)
+
+    def executemany(self, query, seq_of_params):
+        if isinstance(query, str) and '?' in query:
+            query = query.replace('?', '%s')
+        return self._cursor.executemany(query, seq_of_params)
+
+    def fetchone(self):
+        row = self._cursor.fetchone()
+        if row is None:
+            return None
+        return DBRow(self._cursor.description, row)
+
+    def fetchall(self):
+        desc = self._cursor.description
+        if not desc:
+            return []
+        return [DBRow(desc, r) for r in self._cursor.fetchall()]
+
+    def fetchmany(self, size=None):
+        desc = self._cursor.description
+        if not desc:
+            return []
+        rows = self._cursor.fetchmany(size) if size else self._cursor.fetchmany()
+        return [DBRow(desc, r) for r in rows]
+
+    @property
+    def lastrowid(self):
+        return getattr(self._cursor, 'lastrowid', None)
+
+    def __getattr__(self, name):
+        return getattr(self._cursor, name)
+
+
+class PGConnectionWrapper:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def cursor(self):
+        return PGCursorWrapper(self._conn.cursor())
+
+    def commit(self):
+        return self._conn.commit()
+
+    def rollback(self):
+        return self._conn.rollback()
+
+    def close(self):
+        return self._conn.close()
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
 
 
 def get_db_connection():
     """
-    Returns a connection to the SQLite database with Row factory.
+    Returns a connection to the PostgreSQL database with hybrid row factory.
     """
     try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        return conn
-    except sqlite3.Error as e:
-        logger.error(f"Error connecting to database at {DB_PATH}: {e}")
+        conn = psycopg2.connect(DATABASE_URL)
+        return PGConnectionWrapper(conn)
+    except Exception as e:
+        logger.error(f"Error connecting to PostgreSQL database at {DATABASE_URL.split('@')[-1]}: {e}")
         return None
 
 
 def init_db_schema():
     """
-    Initializes normalized multi-tenant tables:
+    Initializes PostgreSQL multi-tenant tables:
     - Companies (tenants, shift settings, credentials)
     - Users (enrolled employees / students)
     - AttendanceRecords (normalized daily check-in / check-out records)
@@ -53,6 +124,7 @@ def init_db_schema():
     - SalaryStructures (payroll compensation configurations)
     - PayrollRuns (monthly payroll run batches)
     - Payslips (individual employee monthly itemized payslips)
+    - FaceEmbeddings (persistent biometric 128-d vectors)
     """
     conn = get_db_connection()
     if not conn:
@@ -60,162 +132,166 @@ def init_db_schema():
     try:
         cursor = conn.cursor()
 
-        # 1. Companies / Tenants Table
+        # 1. Companies Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Companies (
-                "Company ID" TEXT PRIMARY KEY,
-                "Company Name" TEXT,
-                "Username" TEXT UNIQUE,
+                "Company ID" VARCHAR(100) PRIMARY KEY,
+                "Company Name" VARCHAR(255),
+                "Username" VARCHAR(100) UNIQUE,
                 "Password" TEXT,
-                "Leaves Per Month" TEXT DEFAULT '2',
-                "Address" TEXT,
-                "Contact" TEXT,
-                "Email" TEXT,
-                "Check In Time" TEXT DEFAULT '10:00:00',
-                "Check Out Time" TEXT DEFAULT '18:30:00',
-                "Required Hours" TEXT DEFAULT '7.0'
-            )
+                "Leaves Per Month" VARCHAR(20) DEFAULT '2',
+                "Address" TEXT DEFAULT '',
+                "Contact" VARCHAR(100) DEFAULT '',
+                "Email" VARCHAR(150) DEFAULT '',
+                "Check In Time" VARCHAR(20) DEFAULT '09:00:00',
+                "Check Out Time" VARCHAR(20) DEFAULT '18:00:00',
+                "Required Hours" VARCHAR(20) DEFAULT '8.0',
+                "Currency" VARCHAR(10) DEFAULT '₹',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         """)
 
-        # Add missing columns to Companies if needed
-        cursor.execute("PRAGMA table_info(Companies)")
-        existing_cols = [col[1] for col in cursor.fetchall()]
-        column_defs = {
-            "Check In Time": "TEXT DEFAULT '10:00:00'",
-            "Check Out Time": "TEXT DEFAULT '18:30:00'",
-            "Required Hours": "TEXT DEFAULT '7.0'",
-            "Leaves Per Month": "TEXT DEFAULT '2'",
-            "Address": "TEXT",
-            "Contact": "TEXT",
-            "Email": "TEXT"
-        }
-        for col_name, col_def in column_defs.items():
-            if col_name not in existing_cols:
-                try:
-                    cursor.execute(f'ALTER TABLE Companies ADD COLUMN "{col_name}" {col_def}')
-                except Exception as ex:
-                    logger.warning(f"Could not add column {col_name}: {ex}")
-
-        # 2. Users / Enrolled Members Table
+        # 2. Users Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Users (
-                "Company ID" TEXT NOT NULL,
-                "User Name" TEXT NOT NULL,
+                id SERIAL PRIMARY KEY,
+                "Company ID" VARCHAR(100) NOT NULL REFERENCES Companies("Company ID") ON DELETE CASCADE,
+                "User Name" VARCHAR(150) NOT NULL,
                 UNIQUE("Company ID", "User Name")
-            )
+            );
         """)
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_comp ON Users("Company ID")')
 
-        # 3. Normalized Attendance Records Table (Replaces the column-per-day anti-pattern)
+        # 3. Attendance Records Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS AttendanceRecords (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                company_id TEXT NOT NULL,
-                user_name TEXT NOT NULL,
-                date TEXT NOT NULL,
-                in_time TEXT DEFAULT '',
-                out_time TEXT DEFAULT '',
-                status TEXT DEFAULT 'Absent',
-                expected_checkout TEXT DEFAULT '',
-                hours TEXT DEFAULT '0',
-                day_status TEXT DEFAULT 'Absent',
+                id SERIAL PRIMARY KEY,
+                company_id VARCHAR(100) NOT NULL,
+                user_name VARCHAR(150) NOT NULL,
+                date VARCHAR(20) NOT NULL,
+                in_time VARCHAR(20) DEFAULT '',
+                out_time VARCHAR(20) DEFAULT '',
+                status VARCHAR(50) DEFAULT 'Absent',
+                expected_checkout VARCHAR(20) DEFAULT '',
+                hours VARCHAR(20) DEFAULT '0',
+                day_status VARCHAR(50) DEFAULT 'Absent',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(company_id, user_name, date)
-            )
+            );
         """)
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_att_comp_date ON AttendanceRecords(company_id, date)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_att_comp_user ON AttendanceRecords(company_id, user_name)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_att_comp_date ON AttendanceRecords(company_id, date);')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_att_comp_user ON AttendanceRecords(company_id, user_name);')
 
         # 4. Leaves Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Leaves (
-                "Company ID" TEXT,
-                "User Name" TEXT,
-                "Year-Month" TEXT,
-                "Leaves Allowed" INTEGER DEFAULT 2,
-                "Leaves Taken" INTEGER DEFAULT 0,
-                "Leaves Carried" INTEGER DEFAULT 0,
+                id SERIAL PRIMARY KEY,
+                "Company ID" VARCHAR(100) NOT NULL,
+                "User Name" VARCHAR(150) NOT NULL,
+                "Year-Month" VARCHAR(20) NOT NULL,
+                "Leaves Allowed" VARCHAR(20) DEFAULT '2',
+                "Leaves Taken" VARCHAR(20) DEFAULT '0',
+                "Leaves Carried" VARCHAR(20) DEFAULT '0',
                 UNIQUE("Company ID", "User Name", "Year-Month")
-            )
+            );
         """)
 
         # 5. Salary Structures Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS SalaryStructures (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                company_id TEXT NOT NULL,
-                user_name TEXT NOT NULL,
-                base_salary REAL DEFAULT 25000.0,
-                hra REAL DEFAULT 5000.0,
-                allowances REAL DEFAULT 2000.0,
+                id SERIAL PRIMARY KEY,
+                company_id VARCHAR(100) NOT NULL,
+                user_name VARCHAR(150) NOT NULL,
+                base_salary NUMERIC(12, 2) DEFAULT 25000.0,
+                hra NUMERIC(12, 2) DEFAULT 5000.0,
+                allowances NUMERIC(12, 2) DEFAULT 2000.0,
                 pf_enabled INTEGER DEFAULT 1,
-                tax_rate REAL DEFAULT 5.0,
+                tax_rate NUMERIC(5, 2) DEFAULT 5.0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                conveyance_allowance NUMERIC(12, 2) DEFAULT 0.0,
+                special_allowance NUMERIC(12, 2) DEFAULT 0.0,
+                pf_rate NUMERIC(5, 2) DEFAULT 12.0,
+                bank_name VARCHAR(100) DEFAULT '',
+                account_number VARCHAR(100) DEFAULT '',
+                ifsc_code VARCHAR(50) DEFAULT '',
+                payment_mode VARCHAR(50) DEFAULT 'Bank Transfer',
                 UNIQUE(company_id, user_name)
-            )
+            );
         """)
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_sal_comp_user ON SalaryStructures(company_id, user_name)')
 
         # 6. Payroll Runs Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS PayrollRuns (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                company_id TEXT NOT NULL,
+                id SERIAL PRIMARY KEY,
+                company_id VARCHAR(100) NOT NULL,
                 month INTEGER NOT NULL,
                 year INTEGER NOT NULL,
                 total_employees INTEGER DEFAULT 0,
-                total_gross REAL DEFAULT 0.0,
-                total_deductions REAL DEFAULT 0.0,
-                total_net REAL DEFAULT 0.0,
-                status TEXT DEFAULT 'Processed',
+                total_gross NUMERIC(14, 2) DEFAULT 0.0,
+                total_deductions NUMERIC(14, 2) DEFAULT 0.0,
+                total_net NUMERIC(14, 2) DEFAULT 0.0,
+                status VARCHAR(50) DEFAULT 'Completed',
                 processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                working_days INTEGER DEFAULT 26,
+                processed_by VARCHAR(100) DEFAULT 'Admin',
+                paid_at TIMESTAMP,
+                notes TEXT DEFAULT '',
                 UNIQUE(company_id, month, year)
-            )
+            );
         """)
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_payroll_comp ON PayrollRuns(company_id, year, month)')
 
         # 7. Payslips Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Payslips (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                payroll_run_id INTEGER,
-                company_id TEXT NOT NULL,
-                user_name TEXT NOT NULL,
+                id SERIAL PRIMARY KEY,
+                payroll_run_id INTEGER REFERENCES PayrollRuns(id) ON DELETE CASCADE,
+                company_id VARCHAR(100) NOT NULL,
+                user_name VARCHAR(150) NOT NULL,
                 month INTEGER NOT NULL,
                 year INTEGER NOT NULL,
-                working_days INTEGER DEFAULT 0,
-                present_days REAL DEFAULT 0.0,
+                working_days INTEGER DEFAULT 26,
+                present_days NUMERIC(5, 2) DEFAULT 0,
                 half_days INTEGER DEFAULT 0,
-                absent_days REAL DEFAULT 0.0,
-                paid_leave_days REAL DEFAULT 0.0,
-                lop_days REAL DEFAULT 0.0,
-                base_salary REAL DEFAULT 0.0,
-                hra REAL DEFAULT 0.0,
-                allowances REAL DEFAULT 0.0,
-                gross_pay REAL DEFAULT 0.0,
-                lop_deduction REAL DEFAULT 0.0,
-                pf_deduction REAL DEFAULT 0.0,
-                tax_deduction REAL DEFAULT 0.0,
-                net_pay REAL DEFAULT 0.0,
-                status TEXT DEFAULT 'Generated',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(payroll_run_id) REFERENCES PayrollRuns(id)
-            )
+                absent_days NUMERIC(5, 2) DEFAULT 0,
+                paid_leave_days NUMERIC(5, 2) DEFAULT 0,
+                lop_days NUMERIC(5, 2) DEFAULT 0,
+                base_salary NUMERIC(12, 2) DEFAULT 0,
+                hra NUMERIC(12, 2) DEFAULT 0,
+                allowances NUMERIC(12, 2) DEFAULT 0,
+                gross_pay NUMERIC(12, 2) DEFAULT 0,
+                lop_deduction NUMERIC(12, 2) DEFAULT 0,
+                pf_deduction NUMERIC(12, 2) DEFAULT 0,
+                tax_deduction NUMERIC(12, 2) DEFAULT 0,
+                net_pay NUMERIC(12, 2) DEFAULT 0,
+                status VARCHAR(50) DEFAULT 'Generated',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         """)
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_payslips_run ON Payslips(payroll_run_id)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_payslips_comp ON Payslips(company_id, year, month)')
+
+        # 8. Face Embeddings (Persistent Biometrics)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS FaceEmbeddings (
+                id SERIAL PRIMARY KEY,
+                company_id VARCHAR(100) NOT NULL,
+                user_name VARCHAR(150) NOT NULL,
+                encodings_data BYTEA NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(company_id, user_name)
+            );
+        """)
 
         conn.commit()
-        logger.info("Normalized database schema initialized successfully.")
+        logger.info("PostgreSQL schema initialized successfully.")
+
     except Exception as e:
-        logger.error(f"Error initializing DB schema: {e}")
+        conn.rollback()
+        logger.error(f"Error initializing PostgreSQL schema: {e}")
     finally:
         conn.close()
 
 
 def fetch_user_by_username(username):
     """
-    Fetch tenant company data from the database by username or email.
+    Fetch tenant company data from PostgreSQL by username or email.
     Supports case-insensitive matching and whitespace trimming.
     """
     if not username:
@@ -224,17 +300,16 @@ def fetch_user_by_username(username):
     if conn:
         try:
             cursor = conn.cursor()
-            cleaned = username.strip()
-            cursor.execute("""
-                SELECT * FROM Companies 
-                WHERE LOWER(TRIM(Username)) = LOWER(?)
-                   OR LOWER(TRIM(Email)) = LOWER(?)
-            """, (cleaned, cleaned))
-            user_data = cursor.fetchone()
-            return dict(user_data) if user_data else None
-        except sqlite3.Error as e:
-            logger.error(f"Error querying Companies table: {e}")
-            return None
+            clean_name = username.strip()
+            cursor.execute(
+                'SELECT * FROM Companies WHERE LOWER(TRIM(Username)) = LOWER(%s) OR LOWER(TRIM("Email")) = LOWER(%s) LIMIT 1',
+                (clean_name, clean_name)
+            )
+            row = cursor.fetchone()
+            if row:
+                return dict(row)
+        except Exception as e:
+            logger.error(f"Error fetching user {username} from PostgreSQL: {e}")
         finally:
             conn.close()
     return None
@@ -242,19 +317,17 @@ def fetch_user_by_username(username):
 
 def fetch_company_users(company_id):
     """
-    Fetch all enrolled users for a given company.
-    Queries the normalized Users table.
+    Fetch all enrolled users for a given company from PostgreSQL.
     """
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor()
-            cursor.execute('SELECT "User Name" AS Name FROM Users WHERE "Company ID" = ? ORDER BY "User Name" ASC', (company_id,))
+            cursor.execute('SELECT "User Name" AS Name FROM Users WHERE "Company ID" = %s ORDER BY "User Name" ASC', (company_id,))
             rows = cursor.fetchall()
-            return [dict(row) for row in rows]
-        except sqlite3.Error as e:
-            logger.error(f"Error fetching company users: {e}")
-            return []
+            return [{'name': r['name']} for r in rows]
+        except Exception as e:
+            logger.error(f"Error fetching users for {company_id}: {e}")
         finally:
             conn.close()
     return []
@@ -262,24 +335,22 @@ def fetch_company_users(company_id):
 
 def delete_user_from_company(company_id, username):
     """
-    Delete a user from the normalized Users table, AttendanceRecords,
-    Leaves, and SalaryStructures.
+    Delete a user from the company across Users, AttendanceRecords, Leaves, SalaryStructures, and FaceEmbeddings.
     """
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor()
-            cursor.execute('DELETE FROM Users WHERE "Company ID" = ? AND "User Name" = ?', (company_id, username))
-            cursor.execute('DELETE FROM AttendanceRecords WHERE company_id = ? AND user_name = ?', (company_id, username))
-            cursor.execute('DELETE FROM Leaves WHERE "Company ID" = ? AND "User Name" = ?', (company_id, username))
-            cursor.execute('DELETE FROM SalaryStructures WHERE company_id = ? AND user_name = ?', (company_id, username))
+            cursor.execute('DELETE FROM Users WHERE "Company ID" = %s AND "User Name" = %s', (company_id, username))
+            cursor.execute('DELETE FROM AttendanceRecords WHERE company_id = %s AND user_name = %s', (company_id, username))
+            cursor.execute('DELETE FROM Leaves WHERE "Company ID" = %s AND "User Name" = %s', (company_id, username))
+            cursor.execute('DELETE FROM SalaryStructures WHERE company_id = %s AND user_name = %s', (company_id, username))
+            cursor.execute('DELETE FROM FaceEmbeddings WHERE company_id = %s AND user_name = %s', (company_id, username))
             conn.commit()
-            logger.info(f"User {username} deleted from company {company_id}.")
             return True
-        except sqlite3.Error as e:
-            logger.error(f"Error deleting user {username} for company {company_id}: {e}")
+        except Exception as e:
             conn.rollback()
-            return False
+            logger.error(f"Error deleting user {username} from {company_id}: {e}")
         finally:
             conn.close()
     return False
@@ -287,103 +358,111 @@ def delete_user_from_company(company_id, username):
 
 def read_attendance_from_db(company_id):
     """
-    Fetch all attendance records for a company from AttendanceRecords.
-    Returns list of [user_name, date, in_time, out_time, status, expected_checkout, hours, day_status].
+    Reads attendance rows from PostgreSQL AttendanceRecords table.
+    Returns: list of [user_name, date, in_time, out_time, status, expected_checkout, hours, day_status]
     """
     conn = get_db_connection()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT user_name, date, in_time, out_time, status, expected_checkout, hours, day_status
-                FROM AttendanceRecords
-                WHERE company_id = ?
-                ORDER BY date DESC, user_name ASC
-            """, (company_id,))
-            rows = cursor.fetchall()
-            return [
-                [
-                    row['user_name'],
-                    row['date'],
-                    row['in_time'] or '',
-                    row['out_time'] or '',
-                    row['status'] or 'Absent',
-                    row['expected_checkout'] or '',
-                    row['hours'] or '0',
-                    row['day_status'] or 'Absent'
-                ]
-                for row in rows
-            ]
-        except sqlite3.Error as e:
-            logger.error(f"Error fetching attendance data for {company_id}: {e}")
-            return []
-        finally:
-            conn.close()
-    return []
+    if not conn:
+        return []
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT user_name, date, in_time, out_time, status, expected_checkout, hours, day_status
+            FROM AttendanceRecords
+            WHERE company_id = %s
+            ORDER BY date DESC, user_name ASC
+        """, (company_id,))
+        rows = cursor.fetchall()
+        attendance = []
+        for r in rows:
+            attendance.append([
+                r['user_name'],
+                r['date'],
+                r['in_time'] or '',
+                r['out_time'] or '',
+                r['status'] or 'Absent',
+                r['expected_checkout'] or '',
+                r['hours'] or '0',
+                r['day_status'] or 'Absent'
+            ])
+        return attendance
+    except Exception as e:
+        logger.error(f"Error reading attendance for {company_id} from PostgreSQL: {e}")
+        return []
+    finally:
+        conn.close()
 
 
 def upsert_attendance_record(company_id, user_name, date_str, in_time='', out_time='', status='Absent', expected_checkout='', hours='0', day_status='Absent'):
     """
-    Insert or update a single daily attendance record atomically.
+    Upserts an attendance record atomically in PostgreSQL.
     """
     conn = get_db_connection()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO AttendanceRecords (company_id, user_name, date, in_time, out_time, status, expected_checkout, hours, day_status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(company_id, user_name, date) DO UPDATE SET
-                    in_time = excluded.in_time,
-                    out_time = excluded.out_time,
-                    status = excluded.status,
-                    expected_checkout = excluded.expected_checkout,
-                    hours = excluded.hours,
-                    day_status = excluded.day_status
-            """, (company_id, user_name, date_str, in_time, out_time, status, expected_checkout, hours, day_status))
-            conn.commit()
-            return True
-        except sqlite3.Error as e:
-            logger.error(f"Error upserting attendance record: {e}")
-            conn.rollback()
-            return False
-        finally:
-            conn.close()
-    return False
+    if not conn:
+        return False
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO AttendanceRecords (company_id, user_name, date, in_time, out_time, status, expected_checkout, hours, day_status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (company_id, user_name, date) DO UPDATE SET
+                in_time = CASE WHEN EXCLUDED.in_time != '' THEN EXCLUDED.in_time ELSE AttendanceRecords.in_time END,
+                out_time = CASE WHEN EXCLUDED.out_time != '' THEN EXCLUDED.out_time ELSE AttendanceRecords.out_time END,
+                status = EXCLUDED.status,
+                expected_checkout = CASE WHEN EXCLUDED.expected_checkout != '' THEN EXCLUDED.expected_checkout ELSE AttendanceRecords.expected_checkout END,
+                hours = CASE WHEN EXCLUDED.hours != '0' AND EXCLUDED.hours != '' THEN EXCLUDED.hours ELSE AttendanceRecords.hours END,
+                day_status = EXCLUDED.day_status;
+        """, (company_id, user_name, date_str, in_time, out_time, status, expected_checkout, hours, day_status))
+        conn.commit()
+        return True
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Error upserting attendance record: {e}")
+        return False
+    finally:
+        conn.close()
 
 
 def get_salary_structure(company_id, user_name):
     """
-    Fetch an employee's salary configuration.
-    Returns defaults if not explicitly configured.
+    Get configured salary structure for an employee from PostgreSQL.
     """
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT base_salary, hra, allowances, pf_enabled, tax_rate
+                SELECT base_salary, hra, allowances, pf_enabled, tax_rate,
+                       conveyance_allowance, special_allowance, pf_rate, bank_name, account_number, ifsc_code, payment_mode
                 FROM SalaryStructures
-                WHERE company_id = ? AND user_name = ?
+                WHERE company_id = %s AND user_name = %s
             """, (company_id, user_name))
             row = cursor.fetchone()
             if row:
                 return dict(row)
-            return {
-                'base_salary': 25000.0,
-                'hra': 5000.0,
-                'allowances': 2000.0,
-                'pf_enabled': 1,
-                'tax_rate': 5.0
-            }
+        except Exception as e:
+            logger.error(f"Error fetching salary structure: {e}")
         finally:
             conn.close()
-    return {'base_salary': 25000.0, 'hra': 5000.0, 'allowances': 2000.0, 'pf_enabled': 1, 'tax_rate': 5.0}
+    return {
+        'base_salary': 25000.0,
+        'hra': 5000.0,
+        'allowances': 2000.0,
+        'pf_enabled': 1,
+        'tax_rate': 5.0,
+        'conveyance_allowance': 0.0,
+        'special_allowance': 0.0,
+        'pf_rate': 12.0,
+        'bank_name': '',
+        'account_number': '',
+        'ifsc_code': '',
+        'payment_mode': 'Bank Transfer'
+    }
 
 
 def upsert_salary_structure(company_id, user_name, base_salary, hra=5000.0, allowances=2000.0, pf_enabled=1, tax_rate=5.0):
     """
-    Save or update an employee's salary configuration.
+    Save or update an employee's salary configuration in PostgreSQL.
     """
     conn = get_db_connection()
     if conn:
@@ -391,20 +470,19 @@ def upsert_salary_structure(company_id, user_name, base_salary, hra=5000.0, allo
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO SalaryStructures (company_id, user_name, base_salary, hra, allowances, pf_enabled, tax_rate)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(company_id, user_name) DO UPDATE SET
-                    base_salary = excluded.base_salary,
-                    hra = excluded.hra,
-                    allowances = excluded.allowances,
-                    pf_enabled = excluded.pf_enabled,
-                    tax_rate = excluded.tax_rate
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (company_id, user_name) DO UPDATE SET
+                    base_salary = EXCLUDED.base_salary,
+                    hra = EXCLUDED.hra,
+                    allowances = EXCLUDED.allowances,
+                    pf_enabled = EXCLUDED.pf_enabled,
+                    tax_rate = EXCLUDED.tax_rate;
             """, (company_id, user_name, float(base_salary), float(hra), float(allowances), int(pf_enabled), float(tax_rate)))
             conn.commit()
             return True
         except Exception as e:
-            logger.error(f"Error saving salary structure: {e}")
             conn.rollback()
-            return False
+            logger.error(f"Error saving salary structure: {e}")
         finally:
             conn.close()
     return False
@@ -412,7 +490,7 @@ def upsert_salary_structure(company_id, user_name, base_salary, hra=5000.0, allo
 
 def get_all_salary_structures(company_id):
     """
-    Return all configured salary structures for a company.
+    Return all configured salary structures for a company from PostgreSQL.
     """
     conn = get_db_connection()
     if conn:
@@ -421,10 +499,12 @@ def get_all_salary_structures(company_id):
             cursor.execute("""
                 SELECT user_name, base_salary, hra, allowances, pf_enabled, tax_rate
                 FROM SalaryStructures
-                WHERE company_id = ?
+                WHERE company_id = %s
             """, (company_id,))
             rows = cursor.fetchall()
-            return {row['user_name']: dict(row) for row in rows}
+            return {r['user_name']: dict(r) for r in rows}
+        except Exception as e:
+            logger.error(f"Error fetching all salary structures: {e}")
         finally:
             conn.close()
     return {}
@@ -432,86 +512,74 @@ def get_all_salary_structures(company_id):
 
 def save_payroll_run(company_id, month, year, run_data, payslips_data):
     """
-    Saves a completed monthly payroll run batch and associated payslips atomically.
+    Saves a completed monthly payroll run batch and associated payslips atomically in PostgreSQL.
     """
     conn = get_db_connection()
     if not conn:
         return False
     try:
         cursor = conn.cursor()
-        # Upsert PayrollRuns
         cursor.execute("""
-            INSERT INTO PayrollRuns (company_id, month, year, total_employees, total_gross, total_deductions, total_net, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(company_id, month, year) DO UPDATE SET
-                total_employees = excluded.total_employees,
-                total_gross = excluded.total_gross,
-                total_deductions = excluded.total_deductions,
-                total_net = excluded.total_net,
-                status = excluded.status,
+            INSERT INTO PayrollRuns (company_id, month, year, total_employees, total_gross, total_deductions, total_net, status, working_days, processed_by)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (company_id, month, year) DO UPDATE SET
+                total_employees = EXCLUDED.total_employees,
+                total_gross = EXCLUDED.total_gross,
+                total_deductions = EXCLUDED.total_deductions,
+                total_net = EXCLUDED.total_net,
+                status = EXCLUDED.status,
+                working_days = EXCLUDED.working_days,
                 processed_at = CURRENT_TIMESTAMP
+            RETURNING id;
         """, (
-            company_id,
-            int(month),
-            int(year),
+            company_id, int(month), int(year),
             run_data.get('total_employees', 0),
             run_data.get('total_gross', 0.0),
             run_data.get('total_deductions', 0.0),
             run_data.get('total_net', 0.0),
-            run_data.get('status', 'Processed')
+            run_data.get('status', 'Completed'),
+            run_data.get('working_days', 26),
+            run_data.get('processed_by', 'Admin')
         ))
+        res = cursor.fetchone()
+        run_id = res['id'] if res else None
 
-        # Retrieve the run ID
-        cursor.execute("SELECT id FROM PayrollRuns WHERE company_id = ? AND month = ? AND year = ?", (company_id, int(month), int(year)))
-        run_id = cursor.fetchone()['id']
+        if not run_id:
+            cursor.execute("SELECT id FROM PayrollRuns WHERE company_id = %s AND month = %s AND year = %s", (company_id, int(month), int(year)))
+            run_id = cursor.fetchone()['id']
 
         # Clear previous payslips for this run if re-calculating
-        cursor.execute("DELETE FROM Payslips WHERE payroll_run_id = ?", (run_id,))
+        cursor.execute("DELETE FROM Payslips WHERE payroll_run_id = %s", (run_id,))
 
-        # Insert new payslips
-        for p in payslips_data:
+        for ps in payslips_data:
             cursor.execute("""
                 INSERT INTO Payslips (
-                    payroll_run_id, company_id, user_name, month, year,
-                    working_days, present_days, half_days, absent_days, paid_leave_days, lop_days,
+                    payroll_run_id, company_id, user_name, month, year, working_days,
+                    present_days, half_days, absent_days, paid_leave_days, lop_days,
                     base_salary, hra, allowances, gross_pay, lop_deduction, pf_deduction, tax_deduction, net_pay, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                run_id,
-                company_id,
-                p['user_name'],
-                int(month),
-                int(year),
-                p.get('working_days', 0),
-                p.get('present_days', 0.0),
-                p.get('half_days', 0),
-                p.get('absent_days', 0.0),
-                p.get('paid_leave_days', 0.0),
-                p.get('lop_days', 0.0),
-                p.get('base_salary', 0.0),
-                p.get('hra', 0.0),
-                p.get('allowances', 0.0),
-                p.get('gross_pay', 0.0),
-                p.get('lop_deduction', 0.0),
-                p.get('pf_deduction', 0.0),
-                p.get('tax_deduction', 0.0),
-                p.get('net_pay', 0.0),
-                p.get('status', 'Generated')
+                run_id, company_id, ps['user_name'], int(month), int(year), ps.get('working_days', 26),
+                ps.get('present_days', 0), ps.get('half_days', 0), ps.get('absent_days', 0),
+                ps.get('paid_leave_days', 0), ps.get('lop_days', 0),
+                ps.get('base_salary', 0), ps.get('hra', 0), ps.get('allowances', 0),
+                ps.get('gross_pay', 0), ps.get('lop_deduction', 0), ps.get('pf_deduction', 0),
+                ps.get('tax_deduction', 0), ps.get('net_pay', 0), ps.get('status', 'Generated')
             ))
 
         conn.commit()
-        return run_id
+        return True
     except Exception as e:
-        logger.error(f"Error saving payroll run: {e}")
         conn.rollback()
-        return None
+        logger.error(f"Error saving payroll run to PostgreSQL: {e}")
+        return False
     finally:
         conn.close()
 
 
 def get_payroll_runs(company_id):
     """
-    Get all historical payroll runs for a tenant.
+    Get all historical payroll runs for a tenant from PostgreSQL.
     """
     conn = get_db_connection()
     if conn:
@@ -520,11 +588,13 @@ def get_payroll_runs(company_id):
             cursor.execute("""
                 SELECT id, company_id, month, year, total_employees, total_gross, total_deductions, total_net, status, processed_at
                 FROM PayrollRuns
-                WHERE company_id = ?
+                WHERE company_id = %s
                 ORDER BY year DESC, month DESC
             """, (company_id,))
             rows = cursor.fetchall()
             return [dict(r) for r in rows]
+        except Exception as e:
+            logger.error(f"Error fetching payroll runs: {e}")
         finally:
             conn.close()
     return []
@@ -532,7 +602,7 @@ def get_payroll_runs(company_id):
 
 def get_payslips_for_run(company_id, run_id):
     """
-    Get all payslips associated with a specific payroll run.
+    Get all payslips associated with a specific payroll run from PostgreSQL.
     """
     conn = get_db_connection()
     if conn:
@@ -540,11 +610,13 @@ def get_payslips_for_run(company_id, run_id):
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT * FROM Payslips
-                WHERE company_id = ? AND payroll_run_id = ?
+                WHERE company_id = %s AND payroll_run_id = %s
                 ORDER BY user_name ASC
             """, (company_id, run_id))
             rows = cursor.fetchall()
             return [dict(r) for r in rows]
+        except Exception as e:
+            logger.error(f"Error fetching payslips for run {run_id}: {e}")
         finally:
             conn.close()
     return []
