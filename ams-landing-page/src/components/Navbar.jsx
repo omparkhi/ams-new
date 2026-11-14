@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import AMS from "../assets/ams-new2.png"
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -52,7 +53,7 @@ export default function Navbar() {
                   className="brand-logo w-nav-brand w--current"
                   style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
                 >
-                  <span
+                  {/* <span
                     style={{
                       fontWeight: 400,
                       fontSize: '20px',
@@ -62,7 +63,13 @@ export default function Navbar() {
                     }}
                   >
                     AMS
-                  </span>
+                  </span> */}
+
+                  <img
+                    src={AMS}
+                    alt="Attendify"
+                    style={{ height: '43px', width: 'auto', display: 'block', objectFit: 'contain' }}
+                  />
                 </Link>
 
                 {/* Nav Links */}

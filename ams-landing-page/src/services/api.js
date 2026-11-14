@@ -141,6 +141,69 @@ class ApiService {
   updateCompanySettings(settings) {
     return this.request('/company/settings', { method: 'PUT', body: settings });
   }
+
+  // Payroll Endpoints
+  getPayrollStats(month, year) {
+    const params = new URLSearchParams();
+    if (month) params.append('month', month);
+    if (year) params.append('year', year);
+    return this.request(`/payroll/stats${params.toString() ? `?${params.toString()}` : ''}`, { method: 'GET' });
+  }
+
+  getSalaryStructures() {
+    return this.request('/payroll/salary-structures', { method: 'GET' });
+  }
+
+  updateSalaryStructure(data) {
+    return this.request('/payroll/salary-structures', { method: 'POST', body: data });
+  }
+
+  previewPayroll(month, year, workingDays) {
+    return this.request('/payroll/preview', {
+      method: 'POST',
+      body: { month, year, working_days: workingDays }
+    });
+  }
+
+  runPayroll(month, year, workingDays) {
+    return this.request('/payroll/run', {
+      method: 'POST',
+      body: { month, year, working_days: workingDays }
+    });
+  }
+
+  getPayrollRuns() {
+    return this.request('/payroll/runs', { method: 'GET' });
+  }
+
+  getPayrollRun(runId) {
+    return this.request(`/payroll/runs/${runId}`, { method: 'GET' });
+  }
+
+  updatePayrollRunStatus(runId, status) {
+    return this.request(`/payroll/runs/${runId}/status`, {
+      method: 'PATCH',
+      body: { status }
+    });
+  }
+
+  getPayslip(payslipId) {
+    return this.request(`/payroll/payslips/${payslipId}`, { method: 'GET' });
+  }
+
+  async downloadBankCsv(month, year) {
+    const token = this.getToken();
+    const query = new URLSearchParams({ month, year, token }).toString();
+    const blob = await this.request(`/payroll/export/bank-csv?${query}`, { method: 'GET', isBlob: true });
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = `Attendify_Bank_Disbursement_${month}_${year}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+  }
 }
 
 export const api = new ApiService();

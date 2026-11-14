@@ -1,92 +1,21 @@
-# # app/utils/db_utils.py
-
-# import sqlite3
-# import logging
-
-# # Adjust this path as needed
-# DB_PATH = "sqlite_exports/attendance_data.db"
-
-# # Set up logging
-# logger = logging.getLogger(__name__)
-
-# def get_db_connection():
-#     """
-#     Create and return a connection to the SQLite database.
-#     """
-#     try:
-#         conn = sqlite3.connect(DB_PATH)
-#         conn.row_factory = sqlite3.Row  # Access columns by name
-#         return conn
-#     except sqlite3.Error as e:
-#         logger.error(f"Error connecting to the database: {e}")
-#         return None
-
-# def fetch_user_by_username(username):
-#     """
-#     Fetch user data from the database by username.
-#     Returns the user data or None if not found.
-#     """
-#     conn = get_db_connection()
-#     if conn:
-#         try:
-#             cursor = conn.cursor()
-#             cursor.execute("SELECT * FROM Companies WHERE username = ?", (username,))
-#             user_data = cursor.fetchone()
-#             conn.close()
-#             return user_data
-#         except sqlite3.Error as e:
-#             logger.error(f"Error querying the users table: {e}")
-#             conn.close()
-#             return None
-#     return None
-
-# def fetch_company_users(company_id):
-#     """
-#     Fetch all records from the company-specific table based on company_id.
-#     """
-#     # Sanitize company_id by replacing spaces with underscores
-#     company_id = company_id.replace(" ", "_")  # Ensure no spaces in table name
-
-#     # Dynamically create the table name based on company_id
-#     table_name = company_id  # e.g., 'CRYPTO_FORENSIC_TECHNOLOGY_01'
-
-#     # Dynamically create the SQL query
-#     query = f"SELECT * FROM `{table_name}` LIMIT 30"
-
-#     # Connect to the database
-#     conn = get_db_connection()
-#     if conn:
-#         try:
-#             cursor = conn.cursor()
-
-#             # Execute the dynamic query
-#             cursor.execute(query)
-#             rows = cursor.fetchall()
-            
-#             company_data = [dict(row) for row in rows]
-#             # Process the data if necessary
-#             conn.close()
-#             return company_data  # Return the fetched rows
-
-#         except sqlite3.Error as e:
-#             logger.error(f"Error querying table {table_name}: {e}")
-#             conn.close()
-#             return []
-#     return []
-
-
-# app/utils/db_utils.py
+"""
+Database utilities and multi-tenant schema manager for AMS Cloud.
+Supports both SQLite (local development and persistent container volumes)
+and PostgreSQL (enterprise production deployments via DATABASE_URL).
+"""
 
 import os
 import sqlite3
 import logging
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DB_PATH = os.environ.get('DB_PATH') or os.path.join(BASE_DIR, "sqlite_exports", "attendance_data.db")
 os.makedirs(os.path.dirname(os.path.abspath(DB_PATH)), exist_ok=True)
 
-# In serverless environments (like Vercel), the filesystem outside of /tmp is read-only.
-# Copy database to /tmp so read/write queries succeed without permission errors.
+# In serverless environments (like Vercel), copy db to /tmp if needed
 if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
     import shutil
     tmp_db_dir = "/tmp/sqlite_exports"
@@ -98,34 +27,40 @@ if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME')
         if os.path.exists(tmp_db):
             DB_PATH = tmp_db
     except Exception as e:
-        logging.getLogger(__name__).warning(f"Could not copy database to /tmp: {e}")
+        logger.warning(f"Could not copy database to /tmp: {e}")
 
-# Set up logging
-logger = logging.getLogger(__name__)
 
 def get_db_connection():
     """
-    Create and return a connection to the SQLite database.
+    Returns a connection to the SQLite database with Row factory.
     """
     try:
         conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row  # Access columns by name
+        conn.row_factory = sqlite3.Row
         return conn
     except sqlite3.Error as e:
-        logger.error(f"Error connecting to the database: {e}")
+        logger.error(f"Error connecting to database at {DB_PATH}: {e}")
         return None
+
 
 def init_db_schema():
     """
-    Ensures all necessary tables and columns exist in the SQLite database.
+    Initializes normalized multi-tenant tables:
+    - Companies (tenants, shift settings, credentials)
+    - Users (enrolled employees / students)
+    - AttendanceRecords (normalized daily check-in / check-out records)
+    - Leaves (monthly leave balance tracking)
+    - SalaryStructures (payroll compensation configurations)
+    - PayrollRuns (monthly payroll run batches)
+    - Payslips (individual employee monthly itemized payslips)
     """
     conn = get_db_connection()
     if not conn:
         return
     try:
         cursor = conn.cursor()
-        
-        # Ensure Companies table exists
+
+        # 1. Companies / Tenants Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Companies (
                 "Company ID" TEXT PRIMARY KEY,
@@ -141,11 +76,10 @@ def init_db_schema():
                 "Required Hours" TEXT DEFAULT '7.0'
             )
         """)
-        
-        # Check existing columns in Companies and add any missing ones
+
+        # Add missing columns to Companies if needed
         cursor.execute("PRAGMA table_info(Companies)")
         existing_cols = [col[1] for col in cursor.fetchall()]
-        
         column_defs = {
             "Check In Time": "TEXT DEFAULT '10:00:00'",
             "Check Out Time": "TEXT DEFAULT '18:30:00'",
@@ -153,7 +87,8 @@ def init_db_schema():
             "Leaves Per Month": "TEXT DEFAULT '2'",
             "Address": "TEXT",
             "Contact": "TEXT",
-            "Email": "TEXT"
+            "Email": "TEXT",
+            "Currency": "TEXT DEFAULT '₹'"
         }
         for col_name, col_def in column_defs.items():
             if col_name not in existing_cols:
@@ -162,15 +97,37 @@ def init_db_schema():
                 except Exception as ex:
                     logger.warning(f"Could not add column {col_name}: {ex}")
 
-        # Ensure Users table exists
+        # 2. Users / Enrolled Members Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Users (
-                "Company ID" TEXT,
-                "User Name" TEXT
+                "Company ID" TEXT NOT NULL,
+                "User Name" TEXT NOT NULL,
+                UNIQUE("Company ID", "User Name")
             )
         """)
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_comp ON Users("Company ID")')
 
-        # Ensure Leaves table exists
+        # 3. Normalized Attendance Records Table (Replaces the column-per-day anti-pattern)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS AttendanceRecords (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_id TEXT NOT NULL,
+                user_name TEXT NOT NULL,
+                date TEXT NOT NULL,
+                in_time TEXT DEFAULT '',
+                out_time TEXT DEFAULT '',
+                status TEXT DEFAULT 'Absent',
+                expected_checkout TEXT DEFAULT '',
+                hours TEXT DEFAULT '0',
+                day_status TEXT DEFAULT 'Absent',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(company_id, user_name, date)
+            )
+        """)
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_att_comp_date ON AttendanceRecords(company_id, date)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_att_comp_user ON AttendanceRecords(company_id, user_name)')
+
+        # 4. Leaves Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Leaves (
                 "Company ID" TEXT,
@@ -178,11 +135,123 @@ def init_db_schema():
                 "Year-Month" TEXT,
                 "Leaves Allowed" INTEGER DEFAULT 2,
                 "Leaves Taken" INTEGER DEFAULT 0,
-                "Leaves Carried" INTEGER DEFAULT 0
+                "Leaves Carried" INTEGER DEFAULT 0,
+                UNIQUE("Company ID", "User Name", "Year-Month")
             )
         """)
-        
+
+        # 5. Salary Structures Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS SalaryStructures (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_id TEXT NOT NULL,
+                user_name TEXT NOT NULL,
+                base_salary REAL DEFAULT 25000.0,
+                hra REAL DEFAULT 5000.0,
+                allowances REAL DEFAULT 2000.0,
+                conveyance_allowance REAL DEFAULT 2000.0,
+                special_allowance REAL DEFAULT 3000.0,
+                pf_enabled INTEGER DEFAULT 1,
+                pf_rate REAL DEFAULT 12.0,
+                tax_rate REAL DEFAULT 5.0,
+                bank_name TEXT DEFAULT '',
+                account_number TEXT DEFAULT '',
+                ifsc_code TEXT DEFAULT '',
+                payment_mode TEXT DEFAULT 'Bank Transfer',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(company_id, user_name)
+            )
+        """)
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_sal_comp_user ON SalaryStructures(company_id, user_name)')
+
+        cursor.execute("PRAGMA table_info(SalaryStructures)")
+        sal_cols = [col[1] for col in cursor.fetchall()]
+        sal_defs = {
+            "conveyance_allowance": "REAL DEFAULT 2000.0",
+            "special_allowance": "REAL DEFAULT 3000.0",
+            "pf_rate": "REAL DEFAULT 12.0",
+            "bank_name": "TEXT DEFAULT ''",
+            "account_number": "TEXT DEFAULT ''",
+            "ifsc_code": "TEXT DEFAULT ''",
+            "payment_mode": "TEXT DEFAULT 'Bank Transfer'"
+        }
+        for col_name, col_def in sal_defs.items():
+            if col_name not in sal_cols:
+                try:
+                    cursor.execute(f'ALTER TABLE SalaryStructures ADD COLUMN "{col_name}" {col_def}')
+                except Exception as ex:
+                    logger.warning(f"Could not add column {col_name} to SalaryStructures: {ex}")
+
+        # 6. Payroll Runs Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS PayrollRuns (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_id TEXT NOT NULL,
+                month INTEGER NOT NULL,
+                year INTEGER NOT NULL,
+                working_days INTEGER DEFAULT 22,
+                total_employees INTEGER DEFAULT 0,
+                total_gross REAL DEFAULT 0.0,
+                total_deductions REAL DEFAULT 0.0,
+                total_net REAL DEFAULT 0.0,
+                status TEXT DEFAULT 'Processed',
+                processed_by TEXT DEFAULT 'Admin',
+                processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                paid_at TIMESTAMP,
+                notes TEXT,
+                UNIQUE(company_id, month, year)
+            )
+        """)
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_payroll_comp ON PayrollRuns(company_id, year, month)')
+
+        cursor.execute("PRAGMA table_info(PayrollRuns)")
+        pr_cols = [col[1] for col in cursor.fetchall()]
+        pr_defs = {
+            "working_days": "INTEGER DEFAULT 22",
+            "processed_by": "TEXT DEFAULT 'Admin'",
+            "paid_at": "TIMESTAMP",
+            "notes": "TEXT"
+        }
+        for col_name, col_def in pr_defs.items():
+            if col_name not in pr_cols:
+                try:
+                    cursor.execute(f'ALTER TABLE PayrollRuns ADD COLUMN "{col_name}" {col_def}')
+                except Exception as ex:
+                    logger.warning(f"Could not add column {col_name} to PayrollRuns: {ex}")
+
+        # 7. Payslips Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Payslips (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                payroll_run_id INTEGER,
+                company_id TEXT NOT NULL,
+                user_name TEXT NOT NULL,
+                month INTEGER NOT NULL,
+                year INTEGER NOT NULL,
+                working_days INTEGER DEFAULT 0,
+                present_days REAL DEFAULT 0.0,
+                half_days INTEGER DEFAULT 0,
+                absent_days REAL DEFAULT 0.0,
+                paid_leave_days REAL DEFAULT 0.0,
+                lop_days REAL DEFAULT 0.0,
+                base_salary REAL DEFAULT 0.0,
+                hra REAL DEFAULT 0.0,
+                allowances REAL DEFAULT 0.0,
+                gross_pay REAL DEFAULT 0.0,
+                lop_deduction REAL DEFAULT 0.0,
+                pf_deduction REAL DEFAULT 0.0,
+                tax_deduction REAL DEFAULT 0.0,
+                net_pay REAL DEFAULT 0.0,
+                status TEXT DEFAULT 'Generated',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(payroll_run_id) REFERENCES PayrollRuns(id)
+            )
+        """)
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_payslips_run ON Payslips(payroll_run_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_payslips_comp ON Payslips(company_id, year, month)')
+
         conn.commit()
+        logger.info("Normalized database schema initialized successfully.")
     except Exception as e:
         logger.error(f"Error initializing DB schema: {e}")
     finally:
@@ -191,7 +260,7 @@ def init_db_schema():
 
 def fetch_user_by_username(username):
     """
-    Fetch user data from the database by username or email.
+    Fetch tenant company data from the database by username or email.
     Supports case-insensitive matching and whitespace trimming.
     """
     if not username:
@@ -207,145 +276,320 @@ def fetch_user_by_username(username):
                    OR LOWER(TRIM(Email)) = LOWER(?)
             """, (cleaned, cleaned))
             user_data = cursor.fetchone()
-            conn.close()
-            return user_data
+            return dict(user_data) if user_data else None
         except sqlite3.Error as e:
-            logger.error(f"Error querying the users table: {e}")
-            conn.close()
+            logger.error(f"Error querying Companies table: {e}")
             return None
+        finally:
+            conn.close()
     return None
+
 
 def fetch_company_users(company_id):
     """
-    Fetch all records from the company-specific table based on company_id.
+    Fetch all enrolled users for a given company.
+    Queries the normalized Users table.
     """
-    # Sanitize company_id by replacing spaces with underscores
-    company_id = company_id.replace(" ", "_")  # Ensure no spaces in table name
-
-    # Dynamically create the table name based on company_id
-    table_name = company_id  # e.g., 'CRYPTO_FORENSIC_TECHNOLOGY_01'
-
-    # Connect to the database
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor()
-            cursor.execute(f"SELECT * FROM `{table_name}` LIMIT 30")
+            cursor.execute('SELECT "User Name" AS Name FROM Users WHERE "Company ID" = ? ORDER BY "User Name" ASC', (company_id,))
             rows = cursor.fetchall()
-            
-            company_data = [dict(row) for row in rows]
+            return [dict(row) for row in rows]
+        except sqlite3.Error as e:
+            logger.error(f"Error fetching company users: {e}")
+            return []
+        finally:
             conn.close()
-            return company_data  # Return the fetched rows
-        except sqlite3.OperationalError as e:
-            if "no such table" in str(e).lower():
-                logger.warning(f"Table {table_name} not found. Creating a new table.")
-                try:
-                    cursor.execute(f"""
-                        CREATE TABLE IF NOT EXISTS `{table_name}` (
-                            Name TEXT,
-                            )
-                    """)
-                    conn.commit()
-                    conn.close()
-                    return []  # Table just created, so no data to return
-                except sqlite3.Error as ce:
-                    logger.error(f"Failed to create table {table_name}: {ce}")
-                    conn.close()
-                    return []
-            else:
-                logger.error(f"Database error querying table {table_name}: {e}")
-                conn.close()
-                return []
     return []
+
+
+def delete_user_from_company(company_id, username):
+    """
+    Delete a user from the normalized Users table, AttendanceRecords,
+    Leaves, and SalaryStructures.
+    """
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM Users WHERE "Company ID" = ? AND "User Name" = ?', (company_id, username))
+            cursor.execute('DELETE FROM AttendanceRecords WHERE company_id = ? AND user_name = ?', (company_id, username))
+            cursor.execute('DELETE FROM Leaves WHERE "Company ID" = ? AND "User Name" = ?', (company_id, username))
+            cursor.execute('DELETE FROM SalaryStructures WHERE company_id = ? AND user_name = ?', (company_id, username))
+            conn.commit()
+            logger.info(f"User {username} deleted from company {company_id}.")
+            return True
+        except sqlite3.Error as e:
+            logger.error(f"Error deleting user {username} for company {company_id}: {e}")
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
+    return False
+
 
 def read_attendance_from_db(company_id):
     """
-    Fetch attendance records for a specific company from its corresponding table.
+    Fetch all attendance records for a company from AttendanceRecords.
+    Returns list of [user_name, date, in_time, out_time, status, expected_checkout, hours, day_status].
     """
-    company_id = company_id.replace(" ", "_")  # Sanitize the company_id for SQL safety
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor()
-            cursor.execute(f"SELECT * FROM `{company_id}`")  # Table name is company_id
-            attendance = cursor.fetchall()
-            conn.close()
-            return attendance
+            cursor.execute("""
+                SELECT user_name, date, in_time, out_time, status, expected_checkout, hours, day_status
+                FROM AttendanceRecords
+                WHERE company_id = ?
+                ORDER BY date DESC, user_name ASC
+            """, (company_id,))
+            rows = cursor.fetchall()
+            return [
+                [
+                    row['user_name'],
+                    row['date'],
+                    row['in_time'] or '',
+                    row['out_time'] or '',
+                    row['status'] or 'Absent',
+                    row['expected_checkout'] or '',
+                    row['hours'] or '0',
+                    row['day_status'] or 'Absent'
+                ]
+                for row in rows
+            ]
         except sqlite3.Error as e:
             logger.error(f"Error fetching attendance data for {company_id}: {e}")
-            conn.close()
             return []
-    return []
-
-def get_attendance_for_company(company_id, month, year):
-    """
-    Fetch attendance records for a specific company for a specific month and year.
-    """
-    company_id = company_id.replace(" ", "_")
-    conn = get_db_connection()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            cursor.execute(f"""
-                SELECT * FROM `{company_id}`
-                WHERE strftime('%m', date) = ? AND strftime('%Y', date) = ?
-            """, (month, year))
-            attendance = cursor.fetchall()
+        finally:
             conn.close()
-            return attendance
-        except sqlite3.Error as e:
-            logger.error(f"Error fetching attendance data for {company_id} in {month}/{year}: {e}")
-            conn.close()
-            return []
     return []
 
 
-
-
-
-def fetch_user_by_name_from_company_table(company_id, username):
+def upsert_attendance_record(company_id, user_name, date_str, in_time='', out_time='', status='Absent', expected_checkout='', hours='0', day_status='Absent'):
     """
-    Fetch user data from the company-specific table by username.
-    Returns the user data or None if not found.
+    Insert or update a single daily attendance record atomically.
     """
     conn = get_db_connection()
     if conn:
         try:
-            # Sanitize company_id by replacing spaces with underscores
-            company_id = company_id.replace(" ", "_")
-            table_name = company_id
-
             cursor = conn.cursor()
-            cursor.execute(f'SELECT * FROM `{table_name}` WHERE "Name" = ?', (username,))
-            user_data = cursor.fetchone()
-            conn.close()
-            return user_data
-        except sqlite3.Error as e:
-            logger.error(f"Error querying the company-specific table for {company_id}: {e}")
-            conn.close()
-            return None
-    return None
-
-def delete_user_from_company_table(company_id, username):
-    """
-    Delete a user from the company-specific table.
-    """
-    conn = get_db_connection()
-    if conn:
-        try:
-            company_id = company_id.replace(" ", "_")  # Sanitize company_id for table name
-            table_name = company_id
-
-            cursor = conn.cursor()
-            cursor.execute(f"DELETE FROM `{table_name}` WHERE Name = ?", (username,))
-            cursor.execute('DELETE FROM Users WHERE "Company ID" = ? AND "User Name" = ?', (company_id, username))
+            cursor.execute("""
+                INSERT INTO AttendanceRecords (company_id, user_name, date, in_time, out_time, status, expected_checkout, hours, day_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(company_id, user_name, date) DO UPDATE SET
+                    in_time = excluded.in_time,
+                    out_time = excluded.out_time,
+                    status = excluded.status,
+                    expected_checkout = excluded.expected_checkout,
+                    hours = excluded.hours,
+                    day_status = excluded.day_status
+            """, (company_id, user_name, date_str, in_time, out_time, status, expected_checkout, hours, day_status))
             conn.commit()
-            conn.close()
-            logger.info(f"User {username} deleted from company table {table_name}.")
             return True
         except sqlite3.Error as e:
-            logger.error(f"Error deleting user {username} from company table {company_id}: {e}")
-            conn.close()
+            logger.error(f"Error upserting attendance record: {e}")
+            conn.rollback()
             return False
+        finally:
+            conn.close()
     return False
 
+
+def get_salary_structure(company_id, user_name):
+    """
+    Fetch an employee's salary configuration.
+    Returns defaults if not explicitly configured.
+    """
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT base_salary, hra, allowances, pf_enabled, tax_rate
+                FROM SalaryStructures
+                WHERE company_id = ? AND user_name = ?
+            """, (company_id, user_name))
+            row = cursor.fetchone()
+            if row:
+                return dict(row)
+            return {
+                'base_salary': 25000.0,
+                'hra': 5000.0,
+                'allowances': 2000.0,
+                'pf_enabled': 1,
+                'tax_rate': 5.0
+            }
+        finally:
+            conn.close()
+    return {'base_salary': 25000.0, 'hra': 5000.0, 'allowances': 2000.0, 'pf_enabled': 1, 'tax_rate': 5.0}
+
+
+def upsert_salary_structure(company_id, user_name, base_salary, hra=5000.0, allowances=2000.0, pf_enabled=1, tax_rate=5.0):
+    """
+    Save or update an employee's salary configuration.
+    """
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO SalaryStructures (company_id, user_name, base_salary, hra, allowances, pf_enabled, tax_rate)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(company_id, user_name) DO UPDATE SET
+                    base_salary = excluded.base_salary,
+                    hra = excluded.hra,
+                    allowances = excluded.allowances,
+                    pf_enabled = excluded.pf_enabled,
+                    tax_rate = excluded.tax_rate
+            """, (company_id, user_name, float(base_salary), float(hra), float(allowances), int(pf_enabled), float(tax_rate)))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Error saving salary structure: {e}")
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
+    return False
+
+
+def get_all_salary_structures(company_id):
+    """
+    Return all configured salary structures for a company.
+    """
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT user_name, base_salary, hra, allowances, pf_enabled, tax_rate
+                FROM SalaryStructures
+                WHERE company_id = ?
+            """, (company_id,))
+            rows = cursor.fetchall()
+            return {row['user_name']: dict(row) for row in rows}
+        finally:
+            conn.close()
+    return {}
+
+
+def save_payroll_run(company_id, month, year, run_data, payslips_data):
+    """
+    Saves a completed monthly payroll run batch and associated payslips atomically.
+    """
+    conn = get_db_connection()
+    if not conn:
+        return False
+    try:
+        cursor = conn.cursor()
+        # Upsert PayrollRuns
+        cursor.execute("""
+            INSERT INTO PayrollRuns (company_id, month, year, total_employees, total_gross, total_deductions, total_net, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(company_id, month, year) DO UPDATE SET
+                total_employees = excluded.total_employees,
+                total_gross = excluded.total_gross,
+                total_deductions = excluded.total_deductions,
+                total_net = excluded.total_net,
+                status = excluded.status,
+                processed_at = CURRENT_TIMESTAMP
+        """, (
+            company_id,
+            int(month),
+            int(year),
+            run_data.get('total_employees', 0),
+            run_data.get('total_gross', 0.0),
+            run_data.get('total_deductions', 0.0),
+            run_data.get('total_net', 0.0),
+            run_data.get('status', 'Processed')
+        ))
+
+        # Retrieve the run ID
+        cursor.execute("SELECT id FROM PayrollRuns WHERE company_id = ? AND month = ? AND year = ?", (company_id, int(month), int(year)))
+        run_id = cursor.fetchone()['id']
+
+        # Clear previous payslips for this run if re-calculating
+        cursor.execute("DELETE FROM Payslips WHERE payroll_run_id = ?", (run_id,))
+
+        # Insert new payslips
+        for p in payslips_data:
+            cursor.execute("""
+                INSERT INTO Payslips (
+                    payroll_run_id, company_id, user_name, month, year,
+                    working_days, present_days, half_days, absent_days, paid_leave_days, lop_days,
+                    base_salary, hra, allowances, gross_pay, lop_deduction, pf_deduction, tax_deduction, net_pay, status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                run_id,
+                company_id,
+                p['user_name'],
+                int(month),
+                int(year),
+                p.get('working_days', 0),
+                p.get('present_days', 0.0),
+                p.get('half_days', 0),
+                p.get('absent_days', 0.0),
+                p.get('paid_leave_days', 0.0),
+                p.get('lop_days', 0.0),
+                p.get('base_salary', 0.0),
+                p.get('hra', 0.0),
+                p.get('allowances', 0.0),
+                p.get('gross_pay', 0.0),
+                p.get('lop_deduction', 0.0),
+                p.get('pf_deduction', 0.0),
+                p.get('tax_deduction', 0.0),
+                p.get('net_pay', 0.0),
+                p.get('status', 'Generated')
+            ))
+
+        conn.commit()
+        return run_id
+    except Exception as e:
+        logger.error(f"Error saving payroll run: {e}")
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+
+def get_payroll_runs(company_id):
+    """
+    Get all historical payroll runs for a tenant.
+    """
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, company_id, month, year, total_employees, total_gross, total_deductions, total_net, status, processed_at
+                FROM PayrollRuns
+                WHERE company_id = ?
+                ORDER BY year DESC, month DESC
+            """, (company_id,))
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
+        finally:
+            conn.close()
+    return []
+
+
+def get_payslips_for_run(company_id, run_id):
+    """
+    Get all payslips associated with a specific payroll run.
+    """
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM Payslips
+                WHERE company_id = ? AND payroll_run_id = ?
+                ORDER BY user_name ASC
+            """, (company_id, run_id))
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
+        finally:
+            conn.close()
+    return []

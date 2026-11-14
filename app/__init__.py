@@ -65,15 +65,15 @@ def create_app():
     def root_status():
         return jsonify({
             'status': 'online',
-            'service': 'AMS Cloud SaaS API',
+            'service': 'Attendify Cloud SaaS API',
             'version': '2.0.0',
             'api_docs': '/api'
         })
 
-    # Ensure database schema is initialized with shift columns & tables
+    # Ensure database schema is initialized with shift & payroll columns/tables
     init_db_schema()
 
-    # Register Modern SaaS REST API Blueprint
+    # Register Modern SaaS REST API Blueprint (registered at both /api and root / for resilience)
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(api_bp, name='api_root_bp')
 
