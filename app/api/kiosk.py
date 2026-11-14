@@ -18,6 +18,7 @@ from app.utils.attendance_utils import (
     log_attendance,
     calculate_hours,
     get_ist_now,
+    format_time_ist,
     TEMP_CHECKIN_IMAGES_DIR
 )
 from .auth import token_required
@@ -148,10 +149,10 @@ def kiosk_scan(current_user):
                 return jsonify({
                     'status': 'checkin_success',
                     'name': matched_name,
-                    'checkin_time': time_str,
-                    'expected_checkout': expected_checkout,
+                    'checkin_time': format_time_ist(time_str),
+                    'expected_checkout': format_time_ist(expected_checkout),
                     'day_status': day_status,
-                    'message': f"Checked in successfully! Expected out: {expected_checkout} ({day_status})"
+                    'message': f"Checked in successfully! Expected out: {format_time_ist(expected_checkout)} ({day_status})"
                 }), 200
             else:
                 return jsonify({'status': 'error', 'message': 'Failed to record check-in.'}), 500
@@ -165,7 +166,7 @@ def kiosk_scan(current_user):
             return jsonify({
                 'status': 'already_completed',
                 'name': matched_name,
-                'message': f"Attendance already completed for today ({checkin_str} to {checkout_str})."
+                'message': f"Attendance already completed for today ({format_time_ist(checkin_str)} to {format_time_ist(checkout_str)})."
             }), 200
 
         if checkin_str and not checkout_str:
@@ -180,8 +181,8 @@ def kiosk_scan(current_user):
                     return jsonify({
                         'status': 'checkout_blocked',
                         'name': matched_name,
-                        'checkin_time': checkin_str,
-                        'message': f"Check-in just recorded at {checkin_str}. Please wait a moment before checking out."
+                        'checkin_time': format_time_ist(checkin_str),
+                        'message': f"Check-in just recorded at {format_time_ist(checkin_str)}. Please wait a moment before checking out."
                     }), 200
 
                 # Qualified for Check-Out
@@ -197,7 +198,7 @@ def kiosk_scan(current_user):
                     return jsonify({
                         'status': 'checkout_success',
                         'name': matched_name,
-                        'checkout_time': time_str,
+                        'checkout_time': format_time_ist(time_str),
                         'hours_worked': hours,
                         'day_status': day_status,
                         'message': f"Checked out successfully! Total worked: {hours} hours ({day_status})."

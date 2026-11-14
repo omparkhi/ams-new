@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { formatTimeIST } from '../../utils/timeUtils';
 import '../../styles/ams-theme.css';
 
 export default function Dashboard() {
@@ -155,8 +156,8 @@ export default function Dashboard() {
                 {roster.map((student) => (
                   <tr key={student.name}>
                     <td style={{ fontWeight: '600' }}>{student.name}</td>
-                    <td>{student.checkin || '—'}</td>
-                    <td>{student.checkout || '—'}</td>
+                    <td>{formatTimeIST(student.checkin)}</td>
+                    <td>{formatTimeIST(student.checkout)}</td>
                     <td style={{ color: student.hours && student.hours !== '0' ? '#28A745' : '#A0A0A0' }}>
                       {student.hours && student.hours !== '0' ? `${student.hours} hrs` : '—'}
                     </td>

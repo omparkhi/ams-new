@@ -26,6 +26,33 @@ def get_ist_now():
     """
     return (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)).replace(tzinfo=None)
 
+
+def format_time_ist(time_str, include_seconds=True):
+    """
+    Format 24-hr time string (e.g. '15:04:50', '09:00:00', '18:00')
+    into Indian Standard 12-hour format with AM/PM (e.g. '03:04:50 PM', '09:00 AM', '06:00 PM').
+    """
+    if not time_str or str(time_str).strip() in ('—', '-', ''):
+        return '—'
+    s_val = str(time_str).strip()
+    if 'AM' in s_val or 'PM' in s_val or 'am' in s_val or 'pm' in s_val:
+        return s_val
+    try:
+        parts = s_val.split(':')
+        if len(parts) >= 2:
+            h = int(parts[0])
+            m = parts[1].zfill(2)
+            s = parts[2].zfill(2) if len(parts) >= 3 else None
+            period = 'PM' if h >= 12 else 'AM'
+            h12 = h % 12
+            h12 = 12 if h12 == 0 else h12
+            if s and include_seconds:
+                return f"{h12:02d}:{m}:{s} {period}"
+            return f"{h12:02d}:{m} {period}"
+    except Exception:
+        pass
+    return s_val
+
 if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
     TEMP_CHECKIN_IMAGES_DIR = "/tmp/temp_checkin_images"
 else:

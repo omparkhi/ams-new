@@ -10,6 +10,7 @@ import {
 } from '../../components/CustomNavIcons';
 import '../../styles/ams-modern.css';
 import AMS from "../../assets/ams2.png";
+import { formatTimeIST, formatShiftTime, getLiveTimeIST } from '../../utils/timeUtils';
 
 export default function UnifiedAdminPanel() {
   const { user, logout } = useAuth();
@@ -193,7 +194,7 @@ export default function UnifiedAdminPanel() {
         const isCheckout = result.status === 'checkout_success';
         const isCompleted = result.status === 'already_completed';
         const isBlocked = result.status === 'checkout_blocked';
-        const timeVal = result.checkout_time || result.checkin_time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const timeVal = formatTimeIST(result.checkout_time || result.checkin_time || getLiveTimeIST());
         
         setAttendanceSuccessModal({
           open: true,
@@ -218,7 +219,7 @@ export default function UnifiedAdminPanel() {
     if (!window.confirm(`Check in ${name} now?`)) return;
     try {
       const res = await api.forceCheckin(name);
-      const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const currentTime = formatTimeIST(res?.checkin_time || getLiveTimeIST());
       setAttendanceSuccessModal({
         open: true,
         name: name,
@@ -296,7 +297,7 @@ export default function UnifiedAdminPanel() {
     if (!window.confirm(`Force check-out for ${name} now?`)) return;
     try {
       const res = await api.forceCheckout(name);
-      const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const currentTime = formatTimeIST(res?.checkout_time || getLiveTimeIST());
       setAttendanceSuccessModal({
         open: true,
         name: name,
@@ -1023,7 +1024,7 @@ export default function UnifiedAdminPanel() {
                           </div>
                           <div>
                             <div className="activity-name">{r.name}</div>
-                            <div className="activity-time">Checked in at {r.checkin}</div>
+                            <div className="activity-time">Checked in at {formatTimeIST(r.checkin)}</div>
                           </div>
                         </div>
 
@@ -1135,17 +1136,17 @@ export default function UnifiedAdminPanel() {
                         <div className="member-col-shift">
                           <div className="shift-title">Fulltime</div>
                           <div className="shift-sub">
-                            {companyInfo.required_hours || '8.0'}h ({companyInfo.check_in_time} - {companyInfo.check_out_time})
+                            {companyInfo.required_hours || '8.0'}h ({formatShiftTime(companyInfo.check_in_time)} - {formatShiftTime(companyInfo.check_out_time)})
                           </div>
                         </div>
 
                         {/* Col 3: Timestamps */}
                         <div className="member-col-time">
                           <div className="time-title">
-                            {r.checkin ? r.checkin : <span className="time-empty">—</span>}
+                            {r.checkin ? formatTimeIST(r.checkin) : <span className="time-empty">—</span>}
                           </div>
                           <div className="time-sub">
-                            {r.checkout ? `Out: ${r.checkout}` : r.checkin ? `Working: ${r.hours || '0'}h` : 'No Check-in'}
+                            {r.checkout ? `Out: ${formatTimeIST(r.checkout)}` : r.checkin ? `Working: ${r.hours || '0'}h` : 'No Check-in'}
                           </div>
                         </div>
 
@@ -1254,8 +1255,8 @@ export default function UnifiedAdminPanel() {
                             </div>
                           </div>
                         </td>
-                        <td><strong>{r.checkin || '—'}</strong></td>
-                        <td><strong>{r.checkout || '—'}</strong></td>
+                        <td><strong>{r.checkin ? formatTimeIST(r.checkin) : '—'}</strong></td>
+                        <td><strong>{r.checkout ? formatTimeIST(r.checkout) : '—'}</strong></td>
                         <td>
                           <span className={`status-chip ${r.status === 'Present' ? 'present' : 'absent'}`}>
                             {r.status}
@@ -2567,7 +2568,7 @@ export default function UnifiedAdminPanel() {
 
             {attendanceSuccessModal.time && (
               <div className="attendance-popup-time">
-                Recorded at {attendanceSuccessModal.time}
+                Recorded at {formatTimeIST(attendanceSuccessModal.time)}
               </div>
             )}
 

@@ -14,6 +14,7 @@ from app.utils.attendance_utils import (
     calculate_working_days,
     get_ist_now,
     log_attendance,
+    format_time_ist,
     TEMP_CHECKIN_IMAGES_DIR
 )
 from .auth import token_required
@@ -141,8 +142,8 @@ def force_checkout(current_user):
 
         return jsonify({
             'success': True,
-            'message': f'Checkout forced for {name} at {time_str}. Hours logged: {hours_worked}.',
-            'checkout_time': time_str,
+            'message': f'Checkout forced for {name} at {format_time_ist(time_str)}. Hours logged: {hours_worked}.',
+            'checkout_time': format_time_ist(time_str),
             'hours': hours_worked
         }), 200
 
@@ -164,6 +165,7 @@ def force_checkin(current_user):
 
     now = get_ist_now()
     today = now.strftime('%d/%m/%Y')
+    time_str = now.strftime('%H:%M:%S')
     attendance = read_attendance_from_db(company_id)
     today_records = [r for r in attendance if r[0] == name and r[1] == today]
 
@@ -174,7 +176,10 @@ def force_checkin(current_user):
     if success:
         return jsonify({
             'success': True,
-            'message': f'Checked in {name} successfully! Expected out: {expected_checkout} ({day_status}).'
+            'message': f'Checked in {name} successfully! Expected out: {format_time_ist(expected_checkout)} ({day_status}).',
+            'checkin_time': format_time_ist(time_str),
+            'expected_checkout': format_time_ist(expected_checkout),
+            'day_status': day_status
         }), 200
     else:
         return jsonify({'error': 'Failed to record check-in.'}), 500

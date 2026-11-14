@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import api from '../../services/api';
+import { formatTimeIST } from '../../utils/timeUtils';
 import '../../styles/ams-theme.css';
 
 export default function Kiosk() {
@@ -203,8 +204,8 @@ export default function Kiosk() {
               {result.name && (
                 <div style={{ fontSize: '0.85rem', marginTop: '4px' }}>
                   User: <strong>{result.name}</strong>
-                  {result.checkin_time && ` | Check-in: ${result.checkin_time}`}
-                  {result.expected_checkout && ` | Expected Out: ${result.expected_checkout}`}
+                  {result.checkin_time && ` | Check-in: ${formatTimeIST(result.checkin_time)}`}
+                  {result.expected_checkout && ` | Expected Out: ${formatTimeIST(result.expected_checkout)}`}
                   {result.hours_worked && ` | Hours: ${result.hours_worked}`}
                 </div>
               )}

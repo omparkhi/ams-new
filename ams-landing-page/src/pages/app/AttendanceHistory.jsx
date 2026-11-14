@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { formatTimeIST } from '../../utils/timeUtils';
 import '../../styles/ams-theme.css';
 
 export default function AttendanceHistory() {
@@ -153,8 +154,8 @@ export default function AttendanceHistory() {
                   <tr key={idx}>
                     <td style={{ fontWeight: 'bold' }}>{r.name}</td>
                     <td>{r.date}</td>
-                    <td>{r.checkin || '—'}</td>
-                    <td>{r.checkout || '—'}</td>
+                    <td>{formatTimeIST(r.checkin)}</td>
+                    <td>{formatTimeIST(r.checkout)}</td>
                     <td style={{ color: r.hours ? '#28A745' : '#A0A0A0' }}>
                       {r.hours ? `${r.hours} hrs` : '—'}
                     </td>
