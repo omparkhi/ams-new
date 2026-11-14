@@ -29,7 +29,7 @@
 /* Purple Hero Box Container - Inset Framing with Smooth Gradient from Top Dark Purple to Bottom Full White */
 .signup-hero-container {
   flex: 1;
-  min-height: calc(100vh - 24px);
+  min-height: calc(100vh - 14px);
   width: 100%;
   background-color: #6857DF;
   background-image: linear-gradient(180deg, #6857DF 0%, #7666E3 22%, #8A7CF0 44%, #ABA1F7 66%, #D6D0FC 84%, #FFFFFF 100%);
