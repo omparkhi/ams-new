@@ -89,7 +89,7 @@ def kiosk_scan(current_user):
             return jsonify({
                 'status': 'unknown',
                 'name': 'Unknown',
-                'message': 'Face not recognized. Ensure you are looking directly at the camera with good lighting, or select your name from the dropdown.'
+                'message': 'Face not recognized. If you are new, please enroll first using the "New Member Register" tab above, or look directly at the camera with clear lighting.'
             }), 200
 
         # 4. Process Attendance Check-In / Check-Out

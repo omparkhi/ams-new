@@ -188,7 +188,7 @@ export default function OrgKioskPortal() {
           message: result.message || 'Attendance verified successfully!'
         });
       } else {
-        setScanError(result.message || 'Face not recognized. Look directly into the camera with clear lighting.');
+        setScanError(result.message || 'Face not recognized. If you are new, please register first using the "New Member Register" tab above.');
       }
     } catch (err) {
       setScanError(err.message || 'Verification error. Please retry.');
