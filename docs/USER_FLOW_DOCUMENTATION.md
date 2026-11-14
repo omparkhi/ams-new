@@ -229,3 +229,4 @@ flowchart TD
    - Toggle eye button reveals or hides the 6-digit PIN (`••••••` $\leftrightarrow$ `183678`).
    - **Regen Button:** Dynamically generates a new random PIN in PostgreSQL; immediately revokes old terminal sessions for complete security rotation.
    - **Launch Button:** Opens the terminal in a clean browser tab for front-desk mounting.
+

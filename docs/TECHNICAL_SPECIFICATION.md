@@ -307,3 +307,4 @@ To support Render's PostgreSQL connection pooling and URI formats, `app/utils/db
 - Daily attendance check-in photos and reference portraits are stored in `temp_checkin_images/` on persistent local disk or mapped volume mounts.
 - Files are named with tenant and date isolation: `<company_id>_<user_name>_<dd-mm-yyyy>.jpg`.
 - Check-in snapshots are **never deleted on checkout**, ensuring supervisory audit logs remain intact indefinitely.
+

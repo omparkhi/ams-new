@@ -133,3 +133,4 @@ xychart-beta
 - **Phase 1 (Mobile PWA & Offline Sync):** Register a Service Worker on `/kiosk/:orgSlug` to allow offline face vector matching when reception Wi-Fi briefly drops, syncing records upon reconnection.
 - **Phase 2 (Automated WhatsApp & Email Notifications):** Dispatch instant WhatsApp/SMS notifications to parents/employers upon student punch-in (`"Om Parkhi checked in at 09:14 AM IST"`).
 - **Phase 3 (Multi-Branch Management):** Allow large organizations to manage multiple office branches under one consolidated tenant, tracking branch-level attendance across different kiosk slugs.
+
