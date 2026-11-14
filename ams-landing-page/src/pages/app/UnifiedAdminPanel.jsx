@@ -7,7 +7,6 @@ import {
   ScanViewfinderIcon,
   StudentAvatarIcon
 } from '../../components/CustomNavIcons';
-import PayrollTab from './PayrollTab';
 import '../../styles/ams-modern.css';
 
 export default function UnifiedAdminPanel() {
@@ -385,18 +384,6 @@ export default function UnifiedAdminPanel() {
           </button>
 
           <button
-            className={`nav-item ${activeTab === 'payroll' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('payroll'); setMobileMenuOpen(false); }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="4" width="20" height="16" rx="2"/>
-              <line x1="2" y1="10" x2="22" y2="10"/>
-              <line x1="6" y1="15" x2="10" y2="15"/>
-            </svg>
-            Payroll &amp; Salary
-          </button>
-
-          <button
             className="nav-item"
             onClick={() => { setShowSettingsModal(true); setMobileMenuOpen(false); }}
           >
@@ -453,7 +440,6 @@ export default function UnifiedAdminPanel() {
               {activeTab === 'attendance' && 'Live Attendance Roster'}
               {activeTab === 'mark-attendance' && 'Face Recognition Kiosk'}
               {activeTab === 'records' && 'Student Records & Management'}
-              {activeTab === 'payroll' && 'Biometric Automated Payroll'}
             </h1>
           </div>
 
@@ -514,12 +500,6 @@ export default function UnifiedAdminPanel() {
                 onClick={() => setActiveTab('records')}
               >
                 Records
-              </button>
-              <button
-                className={`pill-tab ${activeTab === 'payroll' ? 'active' : ''}`}
-                onClick={() => setActiveTab('payroll')}
-              >
-                Payroll
               </button>
             </div>
 
@@ -1195,13 +1175,6 @@ export default function UnifiedAdminPanel() {
                 </table>
               </div>
             </div>
-          )}
-
-          {/* ==========================================================================
-              TAB 5: BIOMETRIC PAYROLL ENGINE
-              ========================================================================== */}
-          {activeTab === 'payroll' && (
-            <PayrollTab user={user} companyInfo={companyInfo} />
           )}
         </div>
       </main>

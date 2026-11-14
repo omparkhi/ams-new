@@ -87,8 +87,7 @@ def init_db_schema():
             "Leaves Per Month": "TEXT DEFAULT '2'",
             "Address": "TEXT",
             "Contact": "TEXT",
-            "Email": "TEXT",
-            "Currency": "TEXT DEFAULT '₹'"
+            "Email": "TEXT"
         }
         for col_name, col_def in column_defs.items():
             if col_name not in existing_cols:
@@ -149,38 +148,13 @@ def init_db_schema():
                 base_salary REAL DEFAULT 25000.0,
                 hra REAL DEFAULT 5000.0,
                 allowances REAL DEFAULT 2000.0,
-                conveyance_allowance REAL DEFAULT 2000.0,
-                special_allowance REAL DEFAULT 3000.0,
                 pf_enabled INTEGER DEFAULT 1,
-                pf_rate REAL DEFAULT 12.0,
                 tax_rate REAL DEFAULT 5.0,
-                bank_name TEXT DEFAULT '',
-                account_number TEXT DEFAULT '',
-                ifsc_code TEXT DEFAULT '',
-                payment_mode TEXT DEFAULT 'Bank Transfer',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(company_id, user_name)
             )
         """)
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_sal_comp_user ON SalaryStructures(company_id, user_name)')
-
-        cursor.execute("PRAGMA table_info(SalaryStructures)")
-        sal_cols = [col[1] for col in cursor.fetchall()]
-        sal_defs = {
-            "conveyance_allowance": "REAL DEFAULT 2000.0",
-            "special_allowance": "REAL DEFAULT 3000.0",
-            "pf_rate": "REAL DEFAULT 12.0",
-            "bank_name": "TEXT DEFAULT ''",
-            "account_number": "TEXT DEFAULT ''",
-            "ifsc_code": "TEXT DEFAULT ''",
-            "payment_mode": "TEXT DEFAULT 'Bank Transfer'"
-        }
-        for col_name, col_def in sal_defs.items():
-            if col_name not in sal_cols:
-                try:
-                    cursor.execute(f'ALTER TABLE SalaryStructures ADD COLUMN "{col_name}" {col_def}')
-                except Exception as ex:
-                    logger.warning(f"Could not add column {col_name} to SalaryStructures: {ex}")
 
         # 6. Payroll Runs Table
         cursor.execute("""
@@ -189,35 +163,16 @@ def init_db_schema():
                 company_id TEXT NOT NULL,
                 month INTEGER NOT NULL,
                 year INTEGER NOT NULL,
-                working_days INTEGER DEFAULT 22,
                 total_employees INTEGER DEFAULT 0,
                 total_gross REAL DEFAULT 0.0,
                 total_deductions REAL DEFAULT 0.0,
                 total_net REAL DEFAULT 0.0,
                 status TEXT DEFAULT 'Processed',
-                processed_by TEXT DEFAULT 'Admin',
                 processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                paid_at TIMESTAMP,
-                notes TEXT,
                 UNIQUE(company_id, month, year)
             )
         """)
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_payroll_comp ON PayrollRuns(company_id, year, month)')
-
-        cursor.execute("PRAGMA table_info(PayrollRuns)")
-        pr_cols = [col[1] for col in cursor.fetchall()]
-        pr_defs = {
-            "working_days": "INTEGER DEFAULT 22",
-            "processed_by": "TEXT DEFAULT 'Admin'",
-            "paid_at": "TIMESTAMP",
-            "notes": "TEXT"
-        }
-        for col_name, col_def in pr_defs.items():
-            if col_name not in pr_cols:
-                try:
-                    cursor.execute(f'ALTER TABLE PayrollRuns ADD COLUMN "{col_name}" {col_def}')
-                except Exception as ex:
-                    logger.warning(f"Could not add column {col_name} to PayrollRuns: {ex}")
 
         # 7. Payslips Table
         cursor.execute("""

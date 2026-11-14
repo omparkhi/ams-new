@@ -25,10 +25,4 @@ function_log.txt
 Thumbs.db
 
 .vercel
-temp_checkin_images/*
-!temp_checkin_images/.gitkeep
-app/encodings/*.pkl
-!app/encodings/face_encodings_DEMO_CORP_01.pkl
-!app/encodings/.gitkeep
-*.db-shm
-*.db-wal
+temp_checkin_images/

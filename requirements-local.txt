@@ -9,12 +9,6 @@ Pillow>=10.0.0
 python-dotenv>=1.0.0
 gunicorn>=20.0.4
 tenacity>=8.2.0
-google-api-python-client
-google-auth
-google-auth-oauthlib
-google-auth-httplib2
-oauth2client
-gspread
 face-recognition
 opencv-python
 

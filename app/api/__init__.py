@@ -7,5 +7,4 @@ from . import students
 from . import kiosk
 from . import attendance
 from . import company
-from . import payroll
 

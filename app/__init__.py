@@ -60,17 +60,7 @@ def create_app():
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Accept'
         return response
 
-    # Root health & service status endpoint
-    @app.route('/')
-    def root_status():
-        return jsonify({
-            'status': 'online',
-            'service': 'Attendify Cloud SaaS API',
-            'version': '2.0.0',
-            'api_docs': '/api'
-        })
-
-    # Ensure database schema is initialized with shift & payroll columns/tables
+    # Ensure database schema is initialized with shift columns & tables
     init_db_schema()
 
     # Register Modern SaaS REST API Blueprint (registered at both /api and root / for resilience)
