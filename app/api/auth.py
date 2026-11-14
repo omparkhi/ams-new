@@ -1,6 +1,7 @@
 import os
 import re
 import jwt
+import random
 import datetime
 from functools import wraps
 from flask import request, jsonify, current_app
@@ -103,6 +104,20 @@ def register_company():
             counter += 1
             company_id = f"{base_id}_{counter:02d}"
 
+        # Generate unique slug
+        base_slug = re.sub(r'[^a-z0-9]+', '-', company_name.lower()).strip('-') or 'org'
+        slug = base_slug
+        slug_counter = 1
+        while True:
+            cursor.execute('SELECT 1 FROM Companies WHERE "Slug" = ?', (slug,))
+            if not cursor.fetchone():
+                break
+            slug_counter += 1
+            slug = f"{base_slug}-{slug_counter}"
+
+        # Generate randomized 6-digit Kiosk PIN
+        kiosk_pin = str(random.randint(100000, 999999))
+
         # Hash password
         password_hash = generate_password_hash(password)
 
@@ -111,13 +126,15 @@ def register_company():
             INSERT INTO Companies (
                 "Company ID", "Company Name", "Username", "Password",
                 "Leaves Per Month", "Address", "Contact", "Email",
-                "Check In Time", "Check Out Time", "Required Hours"
+                "Check In Time", "Check Out Time", "Required Hours",
+                "Slug", "Kiosk PIN"
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             company_id, company_name, username, password_hash,
             leaves_per_month, address, contact, email,
-            check_in_time, check_out_time, required_hours
+            check_in_time, check_out_time, required_hours,
+            slug, kiosk_pin
         ))
 
         # Dynamically create company attendance table
@@ -131,7 +148,8 @@ def register_company():
             'company_id': company_id,
             'company_name': company_name,
             'username': username,
-            'role': 'company_admin'
+            'role': 'company_admin',
+            'slug': slug
         })
 
         return jsonify({
@@ -143,7 +161,9 @@ def register_company():
                 'company_name': company_name,
                 'username': username,
                 'role': 'company_admin',
-                'email': email
+                'email': email,
+                'slug': slug,
+                'kiosk_pin': kiosk_pin
             }
         }), 201
 
@@ -215,11 +235,15 @@ def login():
     if not is_valid:
         return jsonify({'error': 'Invalid username or password.'}), 401
 
+    slug = user_data.get('Slug') or ''
+    kiosk_pin = user_data.get('Kiosk PIN') or ''
+
     token = generate_token({
         'company_id': company_id,
         'company_name': company_name,
         'username': username,
-        'role': 'company_admin'
+        'role': 'company_admin',
+        'slug': slug
     })
 
     return jsonify({
@@ -230,7 +254,9 @@ def login():
             'company_name': company_name,
             'username': username,
             'role': 'company_admin',
-            'email': user_data['Email'] if 'Email' in user_data.keys() else ''
+            'email': user_data.get('Email', ''),
+            'slug': slug,
+            'kiosk_pin': kiosk_pin
         }
     }), 200
 

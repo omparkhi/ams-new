@@ -165,8 +165,13 @@ def init_db_schema():
                 "Check Out Time" VARCHAR(20) DEFAULT '18:00:00',
                 "Required Hours" VARCHAR(20) DEFAULT '8.0',
                 "Currency" VARCHAR(10) DEFAULT '₹',
+                "Slug" VARCHAR(100) UNIQUE,
+                "Kiosk PIN" VARCHAR(20) DEFAULT '123456',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+            CREATE INDEX IF NOT EXISTS idx_comp_slug ON Companies("Slug");
+            ALTER TABLE Companies ADD COLUMN IF NOT EXISTS "Slug" VARCHAR(100);
+            ALTER TABLE Companies ADD COLUMN IF NOT EXISTS "Kiosk PIN" VARCHAR(20) DEFAULT '123456';
         """)
 
         # 2. Users Table

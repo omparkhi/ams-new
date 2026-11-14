@@ -142,6 +142,15 @@ class ApiService {
     return this.request('/company/settings', { method: 'PUT', body: settings });
   }
 
+  // Kiosk Settings Endpoints
+  getKioskSettings() {
+    return this.request('/company/kiosk-settings', { method: 'GET' });
+  }
+
+  updateKioskSettings(payload) {
+    return this.request('/company/kiosk-settings', { method: 'POST', body: payload });
+  }
+
   // Payroll Endpoints
   getPayrollMembers() {
     return this.request('/payroll/members', { method: 'GET' });

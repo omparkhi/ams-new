@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from functools import wraps
 from flask import request, jsonify
 from app.utils.db_utils import get_db_connection
 from .auth import token_required
@@ -8,8 +9,18 @@ from . import api_bp
 logger = logging.getLogger(__name__)
 
 
+def admin_only(f):
+    @wraps(f)
+    def decorated(current_user, *args, **kwargs):
+        if current_user.get('role') == 'kiosk':
+            return jsonify({'error': 'Access Denied: Confidential payroll data is restricted to company administrators.'}), 403
+        return f(current_user, *args, **kwargs)
+    return decorated
+
+
 @api_bp.route('/payroll/members', methods=['GET'])
 @token_required
+@admin_only
 def get_payroll_members(current_user):
     """
     Returns all enrolled members for the tenant company along with their base salary.
@@ -49,6 +60,7 @@ def get_payroll_members(current_user):
 
 @api_bp.route('/payroll/salary', methods=['POST'])
 @token_required
+@admin_only
 def update_member_salary(current_user):
     """
     Sets or updates the base monthly salary/stipend for a member.
@@ -96,6 +108,7 @@ def update_member_salary(current_user):
 
 @api_bp.route('/payroll/calculate', methods=['GET'])
 @token_required
+@admin_only
 def calculate_monthly_payroll(current_user):
     """
     Auto-calculates monthly payroll from biometric AttendanceRecords.
@@ -235,6 +248,7 @@ def calculate_monthly_payroll(current_user):
 
 @api_bp.route('/payroll/finalize', methods=['POST'])
 @token_required
+@admin_only
 def finalize_payroll(current_user):
     """
     Approves, saves, and locks a monthly payroll run along with individual itemized payslips.
@@ -316,6 +330,7 @@ def finalize_payroll(current_user):
 
 @api_bp.route('/payroll/history', methods=['GET'])
 @token_required
+@admin_only
 def get_payroll_history(current_user):
     """
     Returns previous approved payroll runs for the company tenant.

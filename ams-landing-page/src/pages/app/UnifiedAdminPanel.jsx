@@ -55,6 +55,17 @@ export default function UnifiedAdminPanel() {
     leaves_per_month: '2'
   });
 
+  // Kiosk Portal Link & Access PIN State
+  const [kioskInfo, setKioskInfo] = useState({
+    slug: '',
+    kiosk_pin: '',
+    kiosk_url: '',
+    company_name: ''
+  });
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [regeneratingPin, setRegeneratingPin] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+
   // Mark Attendance Webcam refs & states
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -80,10 +91,11 @@ export default function UnifiedAdminPanel() {
   // Load Dashboard Data
   const loadDashboardData = async () => {
     try {
-      const [todayRes, studentsRes, settingsRes] = await Promise.all([
+      const [todayRes, studentsRes, settingsRes, kioskRes] = await Promise.all([
         api.getTodayAttendance().catch(() => null),
         api.getStudents().catch(() => ({ students: [] })),
-        api.getCompanySettings().catch(() => ({ settings: {} }))
+        api.getCompanySettings().catch(() => ({ settings: {} })),
+        api.getKioskSettings().catch(() => null)
       ]);
 
       if (todayRes) setTodayData(todayRes);
@@ -98,6 +110,14 @@ export default function UnifiedAdminPanel() {
           check_out_time: (s['Check Out Time'] || '18:30:00').substring(0, 5),
           required_hours: String(s['Required Hours'] || '7.0'),
           leaves_per_month: String(s['Leaves Per Month'] || '2')
+        });
+      }
+      if (kioskRes && kioskRes.success) {
+        setKioskInfo({
+          slug: kioskRes.slug || '',
+          kiosk_pin: kioskRes.kiosk_pin || '',
+          kiosk_url: kioskRes.kiosk_url || `/kiosk/${kioskRes.slug}`,
+          company_name: kioskRes.company_name || ''
         });
       }
     } catch (err) {
@@ -312,6 +332,48 @@ export default function UnifiedAdminPanel() {
     }
   };
 
+  // Copy Kiosk Link
+  const handleCopyKioskLink = () => {
+    const slug = kioskInfo.slug || 'terminal';
+    const fullUrl = `${window.location.origin}/kiosk/${slug}`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(fullUrl);
+    } else {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = fullUrl;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
+  };
+
+  // Regenerate Kiosk PIN
+  const handleRegeneratePin = async () => {
+    if (!window.confirm("Regenerating the Kiosk PIN will require all front-desk kiosk devices to authenticate with the new PIN. Proceed?")) {
+      return;
+    }
+    setRegeneratingPin(true);
+    try {
+      const res = await api.updateKioskSettings({ regenerate: true });
+      if (res && res.success) {
+        setKioskInfo(prev => ({
+          ...prev,
+          kiosk_pin: res.kiosk_pin,
+          slug: res.slug || prev.slug
+        }));
+        setShowPin(true);
+      }
+    } catch (err) {
+      alert(err.message || "Failed to regenerate PIN");
+    } finally {
+      setRegeneratingPin(false);
+    }
+  };
+
   // Save Settings Modal
   const handleSaveSettings = async (e) => {
     e.preventDefault();
@@ -325,6 +387,16 @@ export default function UnifiedAdminPanel() {
         required_hours: companyInfo.required_hours,
         leaves_per_month: companyInfo.leaves_per_month
       });
+
+      if (kioskInfo.slug || kioskInfo.kiosk_pin) {
+        await api.updateKioskSettings({
+          slug: kioskInfo.slug,
+          kiosk_pin: kioskInfo.kiosk_pin
+        }).catch(err => {
+          console.warn("Kiosk settings update warning:", err);
+        });
+      }
+
       setShowSettingsModal(false);
       await loadDashboardData();
       alert("Settings updated successfully!");
@@ -744,6 +816,110 @@ export default function UnifiedAdminPanel() {
               ========================================================================== */}
           {activeTab === 'overview' && (
             <div>
+              {/* KIOSK SHARE & ACCESS CONTROL BANNER */}
+              <div className="kiosk-share-banner">
+                <div className="kiosk-share-left">
+                  <div className="kiosk-share-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                      <line x1="8" y1="21" x2="16" y2="21" />
+                      <line x1="12" y1="17" x2="12" y2="21" />
+                    </svg>
+                  </div>
+                  <div className="kiosk-share-info">
+                    <div className="kiosk-share-title">
+                      <span>Front-Desk Kiosk Terminal</span>
+                      <span className="kiosk-share-pill">
+                        {kioskInfo.slug ? `/kiosk/${kioskInfo.slug}` : 'Configured'}
+                      </span>
+                    </div>
+                    <div className="kiosk-share-desc">
+                      Share this isolated link with reception tablets or interns. Only biometric check-in, check-out, and self-enrollment are exposed. Payroll and administrative records remain 100% confidential.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="kiosk-share-actions">
+                  <div className="kiosk-pin-chip" title="Kiosk 6-digit access PIN">
+                    <span className="kiosk-pin-label">PIN:</span>
+                    <span className="kiosk-pin-value">
+                      {showPin ? (kioskInfo.kiosk_pin || '------') : (kioskInfo.kiosk_pin ? '••••••' : '------')}
+                    </span>
+                    <button
+                      type="button"
+                      className="kiosk-pin-toggle"
+                      onClick={() => setShowPin(!showPin)}
+                      title={showPin ? "Hide PIN" : "Reveal PIN"}
+                      aria-label="Toggle PIN Visibility"
+                    >
+                      {showPin ? (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className="kiosk-pin-regen"
+                      onClick={handleRegeneratePin}
+                      disabled={regeneratingPin}
+                      title="Regenerate PIN"
+                      aria-label="Regenerate PIN"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="kiosk-copy-btn"
+                    onClick={handleCopyKioskLink}
+                    title="Copy direct kiosk URL to clipboard"
+                  >
+                    {copiedLink ? (
+                      <>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                        <span>Copy Kiosk Link</span>
+                      </>
+                    )}
+                  </button>
+
+                  <a
+                    href={`/kiosk/${kioskInfo.slug || 'terminal'}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="kiosk-open-btn"
+                    title="Open Kiosk Terminal in new tab"
+                  >
+                    <span>Launch</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+
               {/* TOP ROW: Area Chart (Left) + Donut Gauge (Right) */}
               <div className="dashboard-grid-top">
                 {/* WIDGET 1: Avg. Work Hours Area Chart */}
@@ -2216,6 +2392,67 @@ export default function UnifiedAdminPanel() {
                     onChange={(e) => setCompanyInfo({ ...companyInfo, email: e.target.value })}
                     style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none' }}
                   />
+                </div>
+              </div>
+
+              {/* Dedicated Kiosk Portal Configuration */}
+              <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '10px', border: '1.2px solid #E2E8F0', marginBottom: '18px' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: '700', color: '#1E293B', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: '#EEF2FF', color: '#6857DF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                      <line x1="8" y1="21" x2="16" y2="21" />
+                      <line x1="12" y1="17" x2="12" y2="21" />
+                    </svg>
+                  </div>
+                  Reception / Kiosk Portal Configuration
+                </div>
+                <p style={{ fontSize: '0.78rem', color: '#64748B', margin: '0 0 12px 0' }}>
+                  Custom URL slug and 6-digit access code for front-desk attendance tablets or employee kiosks.
+                </p>
+
+                <div className="modal-form-grid-2">
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: '600', marginBottom: '4px', color: '#64748B' }}>
+                      Kiosk URL Slug:
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '0 10px', height: '38px' }}>
+                      <span style={{ fontSize: '0.78rem', color: '#94A3B8', fontWeight: 500, marginRight: '4px' }}>/kiosk/</span>
+                      <input
+                        type="text"
+                        value={kioskInfo.slug}
+                        onChange={(e) => setKioskInfo({ ...kioskInfo, slug: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') })}
+                        style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.84rem', fontWeight: '600', color: '#1E293B', padding: 0 }}
+                        placeholder="your-org"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: '600', marginBottom: '4px', color: '#64748B' }}>
+                      Kiosk PIN (6 Digits):
+                    </label>
+                    <div style={{ display: 'flex', gap: '6px', height: '38px' }}>
+                      <input
+                        type="text"
+                        maxLength="6"
+                        value={kioskInfo.kiosk_pin}
+                        onChange={(e) => setKioskInfo({ ...kioskInfo, kiosk_pin: e.target.value.replace(/\D/g, '') })}
+                        style={{ flex: 1, padding: '6px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', letterSpacing: '3px', fontWeight: '700', fontSize: '0.92rem' }}
+                        placeholder="123456"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRegeneratePin}
+                        disabled={regeneratingPin}
+                        className="btn-outline"
+                        style={{ padding: '0 10px', fontSize: '0.74rem', whiteSpace: 'nowrap', height: '100%' }}
+                        title="Generate random PIN"
+                      >
+                        {regeneratingPin ? '...' : 'Regen'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 

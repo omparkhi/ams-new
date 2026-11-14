@@ -13,6 +13,7 @@ except ImportError:
     face_recognition = None
 
 from app.utils.face_utils import load_encodings, find_best_match
+from app.utils.db_utils import get_db_connection
 from app.utils.attendance_utils import (
     read_attendance_from_db,
     log_attendance,
@@ -21,7 +22,7 @@ from app.utils.attendance_utils import (
     format_time_ist,
     TEMP_CHECKIN_IMAGES_DIR
 )
-from .auth import token_required
+from .auth import token_required, generate_token
 from . import api_bp
 
 logger = logging.getLogger(__name__)
@@ -215,3 +216,175 @@ def kiosk_scan(current_user):
     except Exception as e:
         logger.exception(f"Unexpected error in kiosk_scan: {e}")
         return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+
+@api_bp.route('/kiosk/org/<slug>', methods=['GET'])
+def get_kiosk_org_info(slug):
+    """
+    Public endpoint to fetch basic organization info for the kiosk portal.
+    """
+    clean_slug = slug.strip().lower()
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Database unavailable.'}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT "Company ID", "Company Name", "Slug", "Check In Time", "Check Out Time", "Required Hours" '
+            'FROM Companies WHERE LOWER("Slug") = LOWER(?) OR LOWER("Company ID") = LOWER(?) LIMIT 1',
+            (clean_slug, clean_slug)
+        )
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'error': f'Organization "{slug}" not found. Please verify the URL.'}), 404
+
+        return jsonify({
+            'success': True,
+            'company_id': row['Company ID'],
+            'company_name': row['Company Name'],
+            'slug': row['Slug'] or clean_slug,
+            'check_in_time': format_time_ist(row['Check In Time'] or '09:00:00', include_seconds=False),
+            'check_out_time': format_time_ist(row['Check Out Time'] or '18:00:00', include_seconds=False),
+            'required_hours': row['Required Hours'] or '8.0',
+            'requires_pin': True
+        }), 200
+    finally:
+        conn.close()
+
+
+@api_bp.route('/kiosk/verify-pin', methods=['POST'])
+def verify_kiosk_pin():
+    """
+    Verifies the 6-digit Kiosk PIN for an organization and returns a scoped kiosk token.
+    """
+    data = request.get_json(silent=True) or {}
+    slug = (data.get('slug') or '').strip().lower()
+    pin = (data.get('pin') or '').strip()
+
+    if not slug or not pin:
+        return jsonify({'error': 'Organization slug and PIN are required.'}), 400
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Database unavailable.'}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT "Company ID", "Company Name", "Slug", "Kiosk PIN" '
+            'FROM Companies WHERE LOWER("Slug") = LOWER(?) OR LOWER("Company ID") = LOWER(?) LIMIT 1',
+            (slug, slug)
+        )
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'error': f'Organization "{slug}" not found.'}), 404
+
+        stored_pin = (row['Kiosk PIN'] or '').strip()
+        if not stored_pin or stored_pin != pin:
+            return jsonify({'error': 'Incorrect Kiosk PIN. Please ask your administrator for the access code.'}), 401
+
+        # Generate scoped token with role: 'kiosk' valid for 30 days
+        kiosk_token = generate_token({
+            'company_id': row['Company ID'],
+            'company_name': row['Company Name'],
+            'slug': row['Slug'] or slug,
+            'role': 'kiosk'
+        }, expires_in_days=30)
+
+        return jsonify({
+            'success': True,
+            'token': kiosk_token,
+            'company_id': row['Company ID'],
+            'company_name': row['Company Name'],
+            'slug': row['Slug'] or slug
+        }), 200
+    finally:
+        conn.close()
+
+
+@api_bp.route('/company/kiosk-settings', methods=['GET'])
+@token_required
+def get_kiosk_settings(current_user):
+    """
+    Returns Kiosk URL slug and active PIN for the authenticated company admin.
+    """
+    company_id = current_user.get('company_id')
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Database unavailable.'}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute('SELECT "Slug", "Kiosk PIN", "Company Name" FROM Companies WHERE "Company ID" = ?', (company_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'error': 'Company not found.'}), 404
+
+        slug = row['Slug'] or company_id.replace(' ', '_').lower()
+        pin = row['Kiosk PIN'] or '123456'
+
+        return jsonify({
+            'success': True,
+            'slug': slug,
+            'kiosk_pin': pin,
+            'company_name': row['Company Name'],
+            'kiosk_url': f"/kiosk/{slug}"
+        }), 200
+    finally:
+        conn.close()
+
+
+@api_bp.route('/company/kiosk-settings', methods=['POST'])
+@token_required
+def update_kiosk_settings(current_user):
+    """
+    Update slug or regenerate/set Kiosk PIN for company admin.
+    """
+    company_id = current_user.get('company_id')
+    data = request.get_json(silent=True) or {}
+    new_pin = data.get('kiosk_pin', '').strip()
+    new_slug = data.get('slug', '').strip().lower()
+    regenerate = data.get('regenerate', False)
+
+    import random, re
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Database unavailable.'}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute('SELECT "Slug", "Kiosk PIN" FROM Companies WHERE "Company ID" = ?', (company_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'error': 'Company not found.'}), 404
+
+        current_slug = row['Slug']
+        current_pin = row['Kiosk PIN']
+
+        if regenerate:
+            new_pin = str(random.randint(100000, 999999))
+        elif not new_pin:
+            new_pin = current_pin
+
+        if new_slug and new_slug != current_slug:
+            clean_slug = re.sub(r'[^a-z0-9]+', '-', new_slug).strip('-')
+            cursor.execute('SELECT 1 FROM Companies WHERE "Slug" = ? AND "Company ID" != ?', (clean_slug, company_id))
+            if cursor.fetchone():
+                return jsonify({'error': f'Slug "{clean_slug}" is already taken by another organization.'}), 409
+            current_slug = clean_slug
+
+        cursor.execute('UPDATE Companies SET "Slug" = ?, "Kiosk PIN" = ? WHERE "Company ID" = ?',
+                       (current_slug, new_pin, company_id))
+        conn.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Kiosk settings updated successfully!',
+            'slug': current_slug,
+            'kiosk_pin': new_pin,
+            'kiosk_url': f"/kiosk/{current_slug}"
+        }), 200
+    finally:
+        conn.close()

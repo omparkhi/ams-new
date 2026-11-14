@@ -1,0 +1,390 @@
+/* ==========================================================================
+   Organization Public Kiosk Portal Styles
+   Matching exact Signup / Login Page visual framing and typography
+   ========================================================================== */
+
+.kiosk-portal-page {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #FFFFFF;
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  letter-spacing: normal;
+}
+
+@media (max-width: 768px) {
+  .kiosk-portal-page {
+    padding: 6px;
+  }
+}
+
+.kiosk-portal-hero {
+  flex: 1;
+  min-height: calc(100vh - 14px);
+  width: 100%;
+  background-color: #6857DF;
+  background-image: linear-gradient(180deg, #6857DF 0%, #7666E3 22%, #8A7CF0 44%, #ABA1F7 66%, #D6D0FC 84%, #FFFFFF 100%);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px 16px 16px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .kiosk-portal-hero {
+    border-radius: 12px;
+    padding: 16px 10px;
+  }
+}
+
+/* Background Texture */
+.kiosk-hero-texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 18px;
+  opacity: 0.85;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.75) 40%, rgba(0, 0, 0, 0.15) 70%, rgba(0, 0, 0, 0) 90%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.75) 40%, rgba(0, 0, 0, 0.15) 70%, rgba(0, 0, 0, 0) 90%);
+}
+
+/* Header with Topbar Information */
+.kiosk-portal-header {
+  text-align: center;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 520px;
+}
+
+.kiosk-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.kiosk-logo-img {
+  height: 38px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.kiosk-live-clock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.kiosk-live-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 6px #10B981;
+  animation: kioskPulse 1.8s infinite;
+}
+
+@keyframes kioskPulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.kiosk-portal-title {
+  color: #FFFFFF;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 4px 0 2px 0;
+  letter-spacing: normal;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.kiosk-portal-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+  letter-spacing: normal;
+}
+
+/* Main Elevation Card */
+.kiosk-portal-card {
+  width: 100%;
+  max-width: 480px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 12px 35px rgba(50, 43, 128, 0.16), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #ECEEFA;
+  padding: 20px 22px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 10;
+  margin: 0 auto;
+}
+
+@media (max-width: 520px) {
+  .kiosk-portal-card {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+}
+
+/* Security PIN Gate Form */
+.kiosk-pin-gate {
+  text-align: center;
+}
+
+.kiosk-pin-icon-wrap {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 12px auto;
+  border-radius: 50%;
+  background: #EEF2FF;
+  color: #6366F1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kiosk-pin-input-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  width: 100%;
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 0 14px;
+  gap: 10px;
+  box-sizing: border-box;
+  margin: 14px 0 12px 0;
+  transition: all 0.2s ease;
+}
+
+.kiosk-pin-input-box:focus-within {
+  border-color: #6366F1;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.kiosk-pin-input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  text-align: center;
+  color: #1E293B;
+  box-sizing: border-box;
+}
+
+.kiosk-pin-input::placeholder {
+  font-size: 13px;
+  letter-spacing: normal;
+  font-weight: 400;
+  color: #94A3B8;
+}
+
+/* Tabs Bar */
+.kiosk-tabs-bar {
+  display: flex;
+  background: #F1F5F9;
+  border-radius: 12px;
+  padding: 3px;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.kiosk-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.kiosk-tab-btn.active {
+  background: #FFFFFF;
+  color: #5B50E5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Camera Frame */
+.kiosk-camera-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 4 / 3;
+  margin: 0 auto 12px auto;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0F172A;
+  box-shadow: 0 8px 24px rgba(50, 43, 128, 0.1);
+}
+
+.kiosk-camera-viewport video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.kiosk-oval-target {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 170px;
+  height: 230px;
+  border: 2px dashed rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.2);
+}
+
+/* CTA Buttons */
+.kiosk-action-btn {
+  width: 100%;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #6857DF;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(104, 87, 223, 0.28);
+}
+
+.kiosk-action-btn:hover:not(:disabled) {
+  background-color: #5846D4;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(104, 87, 223, 0.35);
+}
+
+.kiosk-action-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.kiosk-action-btn.secondary {
+  background: #F1F5F9;
+  color: #475569;
+  box-shadow: none;
+}
+
+.kiosk-action-btn.secondary:hover {
+  background: #E2E8F0;
+  color: #1E293B;
+}
+
+/* Lock Button */
+.kiosk-lock-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11.5px;
+  margin-top: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s ease;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.kiosk-lock-link:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+/* Burst Progress Bar */
+.kiosk-progress-track {
+  width: 100%;
+  height: 8px;
+  background: #E2E8F0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.kiosk-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6857DF 0%, #10B981 100%);
+  transition: width 0.15s ease;
+}
+
+/* Alert Notification */
+.kiosk-alert-error {
+  background-color: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #B91C1C;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.kiosk-alert-success {
+  background-color: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  color: #15803D;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}

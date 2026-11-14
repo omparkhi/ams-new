@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // SaaS Auth & Application Pages
 import Signup from './pages/auth/Signup';
 import Login from './pages/auth/Login';
+import OrgKioskPortal from './pages/kiosk/OrgKioskPortal';
 import UnifiedAdminPanel from './pages/app/UnifiedAdminPanel';
 import AppLayout from './pages/app/AppLayout';
 import Dashboard from './pages/app/Dashboard';
@@ -49,6 +50,10 @@ export default function App() {
           {/* Public SaaS Auth Routes */}
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
+
+          {/* Public Dedicated Organization Kiosk Portal (Isolated from Admin) */}
+          <Route path="/kiosk/:orgSlug" element={<OrgKioskPortal />} />
+          <Route path="/:orgSlug/kiosk" element={<OrgKioskPortal />} />
 
           {/* Exact Unified Office Admin Panel from admin_panel.html */}
           <Route
