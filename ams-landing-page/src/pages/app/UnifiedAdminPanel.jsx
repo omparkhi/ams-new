@@ -2254,8 +2254,9 @@ export default function UnifiedAdminPanel() {
                 />
               </div>
 
-              <div style={{ borderRadius: '12px', overflow: 'hidden', background: '#000', marginBottom: '14px' }}>
+              <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', background: '#000', marginBottom: '14px' }}>
                 <video ref={enrollVideoRef} width="100%" height="240" autoPlay playsInline muted style={{ display: 'block' }} />
+                <div className="face-target-guide" style={{ width: '130px', height: '130px' }} />
                 <canvas ref={enrollCanvasRef} style={{ display: 'none' }} />
               </div>
 

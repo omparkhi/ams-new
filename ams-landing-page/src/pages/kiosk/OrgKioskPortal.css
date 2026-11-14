@@ -249,7 +249,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
-/* Camera Frame */
+/* Camera Frame & Biometric Square Viewfinder */
 .kiosk-camera-viewport {
   position: relative;
   width: 100%;
@@ -269,17 +269,85 @@
   display: block;
 }
 
+/* Modern Biometric Square Viewfinder */
+.kiosk-square-target,
 .kiosk-oval-target {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 170px;
-  height: 230px;
-  border: 2px dashed rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
+  width: 200px;
+  height: 200px;
+  max-width: 65%;
+  max-height: 75%;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
   pointer-events: none;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.45);
+  overflow: hidden;
+}
+
+/* 4 Precision Corner Brackets */
+.kiosk-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: #818CF8;
+  border-style: solid;
+  pointer-events: none;
+}
+
+.kiosk-corner.top-left {
+  top: -1px;
+  left: -1px;
+  border-width: 3.5px 0 0 3.5px;
+  border-top-left-radius: 18px;
+}
+
+.kiosk-corner.top-right {
+  top: -1px;
+  right: -1px;
+  border-width: 3.5px 3.5px 0 0;
+  border-top-right-radius: 18px;
+}
+
+.kiosk-corner.bottom-left {
+  bottom: -1px;
+  left: -1px;
+  border-width: 0 0 3.5px 3.5px;
+  border-bottom-left-radius: 18px;
+}
+
+.kiosk-corner.bottom-right {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 3.5px 3.5px 0;
+  border-bottom-right-radius: 18px;
+}
+
+/* Subtle scanning laser animation */
+.kiosk-scan-laser {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  left: 0;
+  background: linear-gradient(90deg, transparent, #818CF8, #6366F1, #818CF8, transparent);
+  box-shadow: 0 0 10px #6366F1;
+  animation: kioskScanSweep 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes kioskScanSweep {
+  0% {
+    top: 5%;
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.95;
+  }
+  100% {
+    top: 95%;
+    opacity: 0.2;
+  }
 }
 
 /* CTA Buttons */

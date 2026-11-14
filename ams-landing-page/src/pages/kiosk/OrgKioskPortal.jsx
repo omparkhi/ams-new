@@ -449,7 +449,13 @@ export default function OrgKioskPortal() {
                 <div style={{ textAlign: 'center' }}>
                   <div className="kiosk-camera-viewport">
                     <video ref={videoRef} autoPlay playsInline muted />
-                    <div className="kiosk-oval-target" />
+                    <div className="kiosk-square-target">
+                      <span className="kiosk-corner top-left" />
+                      <span className="kiosk-corner top-right" />
+                      <span className="kiosk-corner bottom-left" />
+                      <span className="kiosk-corner bottom-right" />
+                      <div className="kiosk-scan-laser" />
+                    </div>
                   </div>
 
                   {scanError && (
@@ -484,7 +490,7 @@ export default function OrgKioskPortal() {
                   </button>
 
                   <p style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '10px', marginBottom: 0 }}>
-                    Align your face inside the dashed oval. Check-in or check-out is recorded automatically.
+                    Align your face inside the square viewfinder. Check-in or check-out is recorded automatically.
                   </p>
                 </div>
               )}
@@ -517,7 +523,13 @@ export default function OrgKioskPortal() {
 
                     <div className="kiosk-camera-viewport" style={{ maxHeight: '200px' }}>
                       <video ref={videoRef} autoPlay playsInline muted />
-                      <div className="kiosk-oval-target" style={{ width: '130px', height: '170px' }} />
+                      <div className="kiosk-square-target" style={{ width: '140px', height: '140px' }}>
+                        <span className="kiosk-corner top-left" />
+                        <span className="kiosk-corner top-right" />
+                        <span className="kiosk-corner bottom-left" />
+                        <span className="kiosk-corner bottom-right" />
+                        <div className="kiosk-scan-laser" />
+                      </div>
                     </div>
 
                     {enrollCapturing && (
