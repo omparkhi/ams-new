@@ -454,6 +454,7 @@ export default function OrgKioskPortal() {
                       <span className="kiosk-corner top-right" />
                       <span className="kiosk-corner bottom-left" />
                       <span className="kiosk-corner bottom-right" />
+                      <div className="kiosk-face-guide" />
                       <div className="kiosk-scan-laser" />
                     </div>
                   </div>
@@ -490,7 +491,7 @@ export default function OrgKioskPortal() {
                   </button>
 
                   <p style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '10px', marginBottom: 0 }}>
-                    Align your face inside the square viewfinder. Check-in or check-out is recorded automatically.
+                    Hold phone at eye level. Keep your full face (forehead to chin) inside the square.
                   </p>
                 </div>
               )}
@@ -521,16 +522,21 @@ export default function OrgKioskPortal() {
                       </div>
                     </div>
 
-                    <div className="kiosk-camera-viewport" style={{ maxHeight: '200px' }}>
+                    <div className="kiosk-camera-viewport">
                       <video ref={videoRef} autoPlay playsInline muted />
-                      <div className="kiosk-square-target" style={{ width: '140px', height: '140px' }}>
+                      <div className="kiosk-square-target">
                         <span className="kiosk-corner top-left" />
                         <span className="kiosk-corner top-right" />
                         <span className="kiosk-corner bottom-left" />
                         <span className="kiosk-corner bottom-right" />
+                        <div className="kiosk-face-guide" />
                         <div className="kiosk-scan-laser" />
                       </div>
                     </div>
+
+                    <p style={{ fontSize: '0.78rem', color: '#64748B', margin: '4px 0 8px 0' }}>
+                      Hold device steady at eye level. Forehead, eyes, nose, and chin must all be inside the square.
+                    </p>
 
                     {enrollCapturing && (
                       <div style={{ margin: '8px 0' }}>

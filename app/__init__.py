@@ -72,12 +72,23 @@ def create_app():
         det, rec = get_face_pipeline()
         return jsonify({
             'status': 'healthy',
-            'version': '2.4.0',
-            'biometric_engine': 'OpenCV YuNet + SFace' if (det and rec) else 'Spatial Gradient Fallback',
+            'version': '2.5.0',
+            'biometric_engine': 'OpenCV YuNet + SFace' if (det and rec) else 'Spatial Fallback',
             'models_loaded': bool(det and rec),
             'database': 'PostgreSQL' if os.environ.get('DATABASE_URL') else 'SQLite',
+            'consensus_validation': True,
             'timestamp': datetime.datetime.now().isoformat()
         }), 200
+
+    # Auto-sanitize biometrics endpoint for supervisor maintenance
+    @app.route('/api/admin/sanitize-biometrics', methods=['POST'])
+    def trigger_sanitize_biometrics():
+        from scripts.sanitize_database_vectors import sanitize_all_companies
+        try:
+            sanitize_all_companies()
+            return jsonify({'success': True, 'message': 'Database biometrics sanitized and legacy vectors purged.'}), 200
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
     # Register Modern SaaS REST API Blueprint (registered at both /api and root / for resilience)
     app.register_blueprint(api_bp, url_prefix='/api')

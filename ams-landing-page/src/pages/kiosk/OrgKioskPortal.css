@@ -253,13 +253,21 @@
 .kiosk-camera-viewport {
   position: relative;
   width: 100%;
-  max-width: 360px;
-  aspect-ratio: 4 / 3;
+  max-width: 380px;
+  min-height: 290px;
+  aspect-ratio: 1 / 1;
   margin: 0 auto 12px auto;
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
   background: #0F172A;
   box-shadow: 0 8px 24px rgba(50, 43, 128, 0.1);
+}
+
+@media (max-width: 520px) {
+  .kiosk-camera-viewport {
+    min-height: 300px;
+    aspect-ratio: 1 / 1;
+  }
 }
 
 .kiosk-camera-viewport video {
@@ -276,11 +284,11 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  max-width: 65%;
-  max-height: 75%;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  width: 210px;
+  height: 210px;
+  max-width: 70%;
+  max-height: 70%;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
   border-radius: 20px;
   pointer-events: none;
   box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.45);
@@ -323,6 +331,19 @@
   right: -1px;
   border-width: 0 3.5px 3.5px 0;
   border-bottom-right-radius: 18px;
+}
+
+/* Center Face Placement Silhouette Guide */
+.kiosk-face-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 115px;
+  height: 145px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 50% 50% 45% 45%;
+  pointer-events: none;
 }
 
 /* Subtle scanning laser animation */

@@ -130,21 +130,21 @@ def enroll_student(current_user):
         # Strict Quality Guard: Must have at least 2 clean face vectors
         if len(known_face_encodings) < 2:
             return jsonify({
-                'error': f'Insufficient high-quality face captures ({len(known_face_encodings)} detected). Please ensure good lighting and face the camera directly.'
+                'error': f'Face not clearly detected ({len(known_face_encodings)} detected). Please hold your device at eye level so your entire face (eyes, nose, and mouth) is visible inside the square with good lighting.'
             }), 400
 
-        # Strict Biometric Duplicate Face Check:
+        # Strict Biometric Duplicate Face Check (Multi-Frame Consensus):
         # Prevent any student from enrolling under multiple names with the same face.
         if encodings:
             is_dup, dup_name, dup_score = check_duplicate_face(
                 known_face_encodings,
                 encodings,
-                threshold=0.40,
+                threshold=0.50,
                 exclude_name=name
             )
             if is_dup:
                 logger.warning(
-                    f"Duplicate face detected! Candidate '{name}' matched existing student '{dup_name}' (similarity: {dup_score:.4f} >= 0.40)"
+                    f"Duplicate face detected! Candidate '{name}' matched existing student '{dup_name}' (consensus similarity: {dup_score:.4f} >= 0.50)"
                 )
                 return jsonify({
                     'error': f'Biometric validation failed: This face is already enrolled under "{dup_name}". A student cannot be registered multiple times under different names.'

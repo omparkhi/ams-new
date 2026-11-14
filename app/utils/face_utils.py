@@ -84,7 +84,7 @@ def get_face_pipeline():
         if os.path.exists(yunet_path) and os.path.exists(sface_path) and os.path.getsize(sface_path) > 100000:
             _detector = cv2.FaceDetectorYN.create(
                 yunet_path, '', (640, 480),
-                score_threshold=0.55,
+                score_threshold=0.50,
                 nms_threshold=0.3,
                 top_k=5000
             )
@@ -98,78 +98,33 @@ def get_face_pipeline():
     return None, None
 
 
-def _fallback_extract_crop_vector(cv_bgr):
+def is_legacy_vector(vec):
     """
-    Resilient fallback feature extractor:
-    Isolates facial region (central 50% box), normalizes illumination,
-    and extracts a 128-d spatial gradient vector.
-    NEVER relies on ambient room/wall background pixels!
+    Detects old whole-frame downsampled hash vectors that lack zero-centered distribution.
+    Legacy vectors have all positive values (mean > 0.05, std < 0.045).
+    SFace deep embeddings have zero-mean distribution (mean ~ 0.0, std ~ 0.088).
     """
     try:
-        h, w = cv_bgr.shape[:2]
-        top = int(h * 0.15)
-        bottom = int(h * 0.80)
-        left = int(w * 0.25)
-        right = int(w * 0.75)
-        crop = cv_bgr[top:bottom, left:right]
-        if crop.size == 0:
-            crop = cv_bgr
-
-        if cv2 is not None:
-            gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-            gray = cv2.resize(gray, (64, 64))
-        else:
-            pil_img = Image.fromarray(crop).convert('L').resize((64, 64))
-            gray = np.array(pil_img)
-
-        arr = np.array(gray, dtype=np.float64)
-        mean, std = np.mean(arr), np.std(arr)
-        norm_arr = (arr - mean) / (std + 1e-5)
-
-        # Spatial gradient features (Sobel-like)
-        gx = np.zeros_like(norm_arr)
-        gy = np.zeros_like(norm_arr)
-        gx[:, 1:-1] = (norm_arr[:, 2:] - norm_arr[:, :-2]) * 0.5
-        gy[1:-1, :] = (norm_arr[2:, :] - norm_arr[:-2, :]) * 0.5
-
-        # 4x4 spatial grid pooling (16 cells * 8 features = 128-d)
-        grid_size = 4
-        ch, cw = 64 // grid_size, 64 // grid_size
-        features = []
-        for r in range(grid_size):
-            for c in range(grid_size):
-                cell_i = norm_arr[r*ch:(r+1)*ch, c*cw:(c+1)*cw]
-                cell_gx = gx[r*ch:(r+1)*ch, c*cw:(c+1)*cw]
-                cell_gy = gy[r*ch:(r+1)*ch, c*cw:(c+1)*cw]
-                features.extend([
-                    float(np.mean(cell_i)),
-                    float(np.std(cell_i)),
-                    float(np.mean(np.abs(cell_gx))),
-                    float(np.mean(np.abs(cell_gy))),
-                    float(np.std(cell_gx)),
-                    float(np.std(cell_gy)),
-                    float(np.mean(cell_gx)),
-                    float(np.mean(cell_gy)),
-                ])
-
-        vec = np.array(features, dtype=np.float32)
-        norm = np.linalg.norm(vec)
-        return (vec / norm) if norm > 0 else vec
-    except Exception as e:
-        logger.error(f"Fallback facial crop extraction error: {e}")
-        return None
+        arr = np.array(vec, dtype=np.float32)
+        if arr.shape != (128,):
+            return True
+        mean_val = float(np.mean(arr))
+        std_val = float(np.std(arr))
+        return bool(mean_val > 0.05 and std_val < 0.045)
+    except Exception:
+        return True
 
 
 def extract_face_embedding(img_input):
     """
-    Extracts a 128-dimensional normalized facial embedding vector.
+    Extracts a 128-dimensional normalized facial embedding vector using deep AI models.
     Accepts:
       - bytes (JPEG/PNG encoded)
       - base64 data string / URI
       - PIL.Image
       - numpy.ndarray (BGR or RGB)
     Returns:
-      - 1D numpy array of shape (128,) with unit L2 norm, or None if invalid.
+      - 1D numpy array of shape (128,) with unit L2 norm, or None if no face is detected.
     """
     cv_bgr = None
 
@@ -204,12 +159,24 @@ def extract_face_embedding(img_input):
         if cv_bgr is None or cv_bgr.size == 0:
             return None
 
-        # 1. Primary: Try OpenCV YuNet + SFace pipeline
+        # 1. Primary: OpenCV YuNet Face Detection + SFace Feature Extraction
         detector, recognizer = get_face_pipeline()
         if detector is not None and recognizer is not None:
             h, w = cv_bgr.shape[:2]
             detector.setInputSize((w, h))
+
+            # First pass: standard confidence threshold
             _, faces = detector.detect(cv_bgr)
+
+            # Adaptive second pass: lower threshold if face was missed (handles mobile front-camera lighting)
+            if (faces is None or len(faces) == 0) and hasattr(detector, 'setScoreThreshold'):
+                try:
+                    detector.setScoreThreshold(0.32)
+                    _, faces = detector.detect(cv_bgr)
+                    detector.setScoreThreshold(0.50) # reset
+                except Exception:
+                    pass
+
             if faces is not None and len(faces) > 0:
                 # Pick the highest-confidence face
                 best_face = max(faces, key=lambda f: f[-1])
@@ -230,8 +197,9 @@ def extract_face_embedding(img_input):
                     norm = np.linalg.norm(vec)
                     return (vec / norm) if norm > 0 else vec
 
-        # 3. Tertiary: Resilient background-free facial crop gradient vector
-        return _fallback_extract_crop_vector(cv_bgr)
+        # Strictly return None if no face was genuinely detected.
+        # NEVER invent artificial statistical vectors that cause false collisions!
+        return None
 
     except Exception as e:
         logger.error(f"Error extracting face embedding: {e}")
@@ -253,13 +221,9 @@ def extract_face_embeddings_multi(images):
 
 def find_best_match(face_vec, known_faces, threshold=0.40, strict_threshold=None):
     """
-    Matches a single query face vector against all enrolled company users.
+    Matches a query face vector against enrolled company users.
     Threshold: Minimum cosine similarity required to confirm identity.
-    Default threshold 0.40 comfortably matches genuine enrolled users (typically 0.80+)
-    while strictly rejecting different persons (typically 0.10-0.20).
-
-    Returns:
-        (matched_name, best_similarity_score) if matched, else None.
+    Ignores legacy corrupted vectors to prevent false mismatches.
     """
     if not known_faces or face_vec is None:
         return None
@@ -278,10 +242,15 @@ def find_best_match(face_vec, known_faces, threshold=0.40, strict_threshold=None
         if not user_vectors:
             continue
         try:
-            arr = np.array(user_vectors, dtype=np.float32)
+            # Filter out any legacy corrupt vectors
+            valid_vecs = [v for v in user_vectors if not is_legacy_vector(v)]
+            if not valid_vecs:
+                continue
+
+            arr = np.array(valid_vecs, dtype=np.float32)
             if arr.ndim == 1:
                 arr = arr.reshape(1, -1)
-            # Dot product with unit vectors is cosine similarity
+
             sims = np.dot(arr, query)
             max_sim = float(np.max(sims))
             if max_sim > best_sim:
@@ -299,14 +268,26 @@ def find_best_match(face_vec, known_faces, threshold=0.40, strict_threshold=None
     return None
 
 
-def check_duplicate_face(candidate_vecs, known_faces, threshold=0.40, exclude_name=None):
+def check_duplicate_face(candidate_vecs, known_faces, threshold=0.50, exclude_name=None):
     """
-    Checks if a candidate's face vectors match any existing enrolled student.
+    Consensus-Based Duplicate Face Validation.
     Prevents duplicate registration of the same person under multiple names.
+    Uses multi-frame median consensus to eliminate single-pair outlier false alarms.
     Returns:
-        (is_duplicate: bool, existing_name: str or None, max_similarity: float)
+        (is_duplicate: bool, existing_name: str or None, consensus_similarity: float)
     """
     if not known_faces or not candidate_vecs:
+        return False, None, 0.0
+
+    valid_candidates = []
+    for cv in candidate_vecs:
+        if cv is not None and not is_legacy_vector(cv):
+            cv_arr = np.array(cv, dtype=np.float32).flatten()
+            norm = np.linalg.norm(cv_arr)
+            if norm > 0:
+                valid_candidates.append(cv_arr / norm)
+
+    if not valid_candidates:
         return False, None, 0.0
 
     for name, user_vectors in known_faces.items():
@@ -316,23 +297,34 @@ def check_duplicate_face(candidate_vecs, known_faces, threshold=0.40, exclude_na
             continue
 
         try:
-            arr = np.array(user_vectors, dtype=np.float32)
+            # Filter out any old legacy vectors
+            valid_user_vecs = [v for v in user_vectors if not is_legacy_vector(v)]
+            if not valid_user_vecs:
+                continue
+
+            arr = np.array(valid_user_vecs, dtype=np.float32)
             if arr.ndim == 1:
                 arr = arr.reshape(1, -1)
 
-            for cand_vec in candidate_vecs:
-                cv = np.array(cand_vec, dtype=np.float32).flatten()
-                norm = np.linalg.norm(cv)
-                if norm > 0:
-                    cv = cv / norm
+            # For each candidate frame, calculate maximum similarity against enrolled vectors
+            cand_max_sims = []
+            for cv in valid_candidates:
                 sims = np.dot(arr, cv)
-                max_sim = float(np.max(sims))
-                if max_sim >= threshold:
-                    logger.warning(
-                        f"Duplicate face detected! Candidate matched existing student '{name}' "
-                        f"(similarity: {max_sim:.4f} >= {threshold})"
-                    )
-                    return True, name, max_sim
+                cand_max_sims.append(float(np.max(sims)))
+
+            cand_max_sims = np.array(cand_max_sims)
+            median_sim = float(np.median(cand_max_sims))
+            high_match_ratio = float(np.mean(cand_max_sims >= 0.48))
+
+            # Consensus Duplicate Condition:
+            # Genuine duplicate (same person): median_sim is 0.80 - 0.95, high_match_ratio > 0.80.
+            # Distinct person: median_sim is 0.10 - 0.20, high_match_ratio = 0.
+            if median_sim >= 0.50 or (high_match_ratio >= 0.35 and median_sim >= 0.44):
+                logger.warning(
+                    f"Duplicate face detected! Candidate matched existing student '{name}' "
+                    f"(median similarity: {median_sim:.4f}, high match ratio: {high_match_ratio:.2%})"
+                )
+                return True, name, median_sim
         except Exception as e:
             logger.error(f"Error checking similarity against {name}: {e}")
             continue
@@ -344,9 +336,11 @@ def load_encodings(company_id):
     """
     Loads persistent encodings for a company from PostgreSQL FaceEmbeddings table,
     falling back to local .pkl backup if available.
+    Automatically self-heals legacy fallback vectors if profile portrait snapshot exists.
     """
     try:
         company_id_norm = company_id.replace(" ", "_")
+        from app.utils.attendance_utils import TEMP_CHECKIN_IMAGES_DIR
 
         # 1. Primary: PostgreSQL FaceEmbeddings table
         try:
@@ -362,10 +356,36 @@ def load_encodings(company_id):
                     rows = cursor.fetchall()
                     if rows:
                         encodings = {}
+                        needs_save = False
+
                         for r in rows:
+                            uname = r['user_name']
                             raw_bytes = bytes(r['encodings_data'])
-                            encodings[r['user_name']] = pickle.loads(raw_bytes)
-                        logger.debug(f"Loaded {len(encodings)} user encodings from PostgreSQL for company {company_id}")
+                            vecs = pickle.loads(raw_bytes)
+
+                            # Check for legacy vectors
+                            has_legacy = any(is_legacy_vector(v) for v in vecs) if vecs else False
+                            if has_legacy:
+                                profile_path = os.path.join(TEMP_CHECKIN_IMAGES_DIR, f"{company_id}_{uname}_profile.jpg")
+                                if os.path.exists(profile_path):
+                                    try:
+                                        with open(profile_path, 'rb') as pf:
+                                            new_v = extract_face_embedding(pf.read())
+                                        if new_v is not None:
+                                            vecs = [new_v]
+                                            needs_save = True
+                                            logger.info(f"Self-healed legacy vector for {uname} from profile portrait.")
+                                    except Exception as ex:
+                                        logger.debug(f"Self-heal error for {uname}: {ex}")
+
+                            encodings[uname] = vecs
+
+                        if needs_save:
+                            try:
+                                save_encodings(company_id, encodings)
+                            except Exception:
+                                pass
+
                         return encodings
                 finally:
                     conn.close()
@@ -393,7 +413,6 @@ def load_encodings(company_id):
         if encodings_file:
             with open(encodings_file, 'rb') as f:
                 encodings = pickle.load(f)
-            logger.debug(f"Loaded encodings from .pkl for {company_id}: {len(encodings)} users")
             return encodings
 
         logger.warning(f"No face encodings found for {company_id}")
