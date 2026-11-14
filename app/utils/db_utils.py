@@ -123,12 +123,18 @@ class PGConnectionWrapper:
 def get_db_connection():
     """
     Returns a connection to the PostgreSQL database with hybrid row factory.
+    Auto-corrects Render's 'postgres://' connection URI scheme to 'postgresql://'.
     """
+    db_url = os.environ.get('DATABASE_URL') or DATABASE_URL
+    if db_url and db_url.startswith('postgres://'):
+        db_url = db_url.replace('postgres://', 'postgresql://', 1)
+
     try:
-        conn = psycopg2.connect(DATABASE_URL)
+        conn = psycopg2.connect(db_url)
         return PGConnectionWrapper(conn)
     except Exception as e:
-        logger.error(f"Error connecting to PostgreSQL database at {DATABASE_URL.split('@')[-1]}: {e}")
+        safe_host = db_url.split('@')[-1] if db_url and '@' in db_url else 'local'
+        logger.error(f"Error connecting to PostgreSQL database at {safe_host}: {e}")
         return None
 
 
