@@ -12,7 +12,7 @@ try:
 except ImportError:
     face_recognition = None
 
-from app.utils.face_utils import load_encodings, find_best_match
+from app.utils.face_utils import load_encodings, find_best_match, extract_face_embedding
 from app.utils.db_utils import get_db_connection
 from app.utils.attendance_utils import (
     read_attendance_from_db,
@@ -62,41 +62,16 @@ def kiosk_scan(current_user):
             pil_image = Image.open(io.BytesIO(image_bytes))
             if pil_image.mode != 'RGB':
                 pil_image = pil_image.convert('RGB')
-            frame = np.array(pil_image)
         except Exception as e:
             logger.error(f"Error decoding image in kiosk: {e}")
             return jsonify({'error': 'Invalid image format received from camera.'}), 400
 
-        # 2. Extract biometric face encoding
-        encodings = []
-        if face_recognition:
-            try:
-                locations = face_recognition.face_locations(frame, model="hog")
-                if locations:
-                    encodings = face_recognition.face_encodings(frame, locations)
-            except Exception as e:
-                logger.debug(f"face_recognition error: {e}")
-
-        # Resilient fallback: extract normalized 128-d visual vector from webcam frame
-        if not encodings:
-            try:
-                pil_thumb = pil_image.resize((64, 64)).convert('L')
-                arr = np.array(pil_thumb, dtype=np.float64).flatten()
-                step = max(1, len(arr) // 128)
-                vec = arr[::step][:128]
-                if len(vec) < 128:
-                    vec = np.pad(vec, (0, 128 - len(vec)))
-                norm = np.linalg.norm(vec)
-                if norm > 0:
-                    vec = vec / norm
-                encodings = [vec]
-            except Exception as e:
-                logger.error(f"Fallback feature extraction error: {e}")
-                encodings = []
+        # 2. Extract deep biometric face encoding
+        face_vec = extract_face_embedding(image_bytes)
 
         # 3. Match face against company's enrolled vectors
         matched_name = None
-        best_distance = 1.0
+        best_similarity = 0.0
 
         # Direct student selection override (if admin explicitly picked a student)
         if student_override and student_override in known_faces:
@@ -104,21 +79,12 @@ def kiosk_scan(current_user):
             logger.info(f"Direct attendance marking selected for: {matched_name}")
 
         # Biometric matching
-        if not matched_name and encodings:
-            tol = 0.5 if face_recognition else 0.75
-            strict = 0.45 if face_recognition else 0.70
+        if not matched_name and face_vec is not None:
+            match_result = find_best_match(face_vec, known_faces, threshold=0.40)
+            if match_result:
+                matched_name, best_similarity = match_result
 
-            for face_vec in encodings:
-                match_result = find_best_match(face_vec, known_faces, tolerance=tol, strict_threshold=strict)
-                if match_result:
-                    matched_name, best_distance = match_result
-                    break
-
-        # If only 1 student is enrolled in company and no override was selected, auto-match them
-        if not matched_name and len(known_faces) == 1 and not face_recognition:
-            matched_name = list(known_faces.keys())[0]
-            logger.info(f"Single enrolled student auto-matched: {matched_name}")
-
+        # Strict validation: If face is unrecognized or does not match company students, reject
         if not matched_name:
             return jsonify({
                 'status': 'unknown',

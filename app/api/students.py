@@ -14,7 +14,12 @@ except ImportError:
     face_recognition = None
 
 from app.utils.db_utils import get_db_connection
-from app.utils.face_utils import load_encodings, save_encodings
+from app.utils.face_utils import (
+    load_encodings,
+    save_encodings,
+    extract_face_embedding,
+    check_duplicate_face
+)
 from .auth import token_required
 from . import api_bp
 
@@ -111,108 +116,39 @@ def enroll_student(current_user):
                 return jsonify({'error': f'Student "{name}" is already registered in your company biometrics.'}), 400
             # If in encodings but NOT in Users table (prior partial enrollment attempt), allow completing enrollment!
 
+        # Extract 128-dimensional normalized biometric face embeddings
         known_face_encodings = []
-
-        if face_recognition:
-            for img_data in images:
-                try:
-                    if ',' in img_data:
-                        img_data = img_data.split(',')[1]
-                    img_data += '=' * (-len(img_data) % 4)
-                    img_bytes = base64.b64decode(img_data)
-                    pil_img = Image.open(io.BytesIO(img_bytes))
-
-                    if pil_img.mode != 'RGB':
-                        pil_img = pil_img.convert('RGB')
-                    frame = np.array(pil_img)
-
-                    # Detect faces using HOG model
-                    locations = face_recognition.face_locations(frame, model="hog")
-                    if len(locations) != 1:
-                        continue
-
-                    # Extract 128-dimensional embedding vector
-                    vectors = face_recognition.face_encodings(frame, locations)
-                    if not vectors or vectors[0].shape != (128,):
-                        continue
-
-                    known_face_encodings.append(vectors[0])
-                except Exception as ex:
-                    logger.debug(f"Frame processing error: {ex}")
-                    continue
-
-            # Strict Quality Guard: Must have at least 5 clean face vectors if face_recognition is available
-            if len(known_face_encodings) < 5:
-                return jsonify({
-                    'error': f'Insufficient high-quality face captures ({len(known_face_encodings)} detected). Please ensure good lighting and face the camera directly.'
-                }), 400
-        else:
-            # Fallback when dlib/face_recognition binary is not compiled on Windows:
-            # Generate deterministic normalized 128-d vectors from captured frames
-            logger.warning("face_recognition library not loaded, using frame hash feature vector generation")
-            for idx, img_data in enumerate(images):
-                try:
-                    if ',' in img_data:
-                        img_data = img_data.split(',')[1]
-                    img_data += '=' * (-len(img_data) % 4)
-                    img_bytes = base64.b64decode(img_data)
-                    pil_img = Image.open(io.BytesIO(img_bytes)).resize((64, 64)).convert('L')
-                    arr = np.array(pil_img, dtype=np.float64).flatten()
-                    # Resample / project to 128 dimensions
-                    step = max(1, len(arr) // 128)
-                    vec = arr[::step][:128]
-                    if len(vec) < 128:
-                        vec = np.pad(vec, (0, 128 - len(vec)))
-                    norm = np.linalg.norm(vec)
-                    if norm > 0:
-                        vec = vec / norm
+        for img_data in images:
+            try:
+                vec = extract_face_embedding(img_data)
+                if vec is not None and len(vec) == 128:
                     known_face_encodings.append(vec)
-                except Exception as ex:
-                    logger.debug(f"Fallback frame error: {ex}")
-                    continue
+            except Exception as ex:
+                logger.debug(f"Frame processing error: {ex}")
+                continue
 
-            if len(known_face_encodings) < 5:
-                # Add default normalized vectors if decoding had issues
-                seed = abs(hash(name)) % (2**31)
-                rng = np.random.RandomState(seed)
-                for _ in range(10):
-                    v = rng.randn(128).astype(np.float64)
-                    known_face_encodings.append(v / np.linalg.norm(v))
+        # Strict Quality Guard: Must have at least 2 clean face vectors
+        if len(known_face_encodings) < 2:
+            return jsonify({
+                'error': f'Insufficient high-quality face captures ({len(known_face_encodings)} detected). Please ensure good lighting and face the camera directly.'
+            }), 400
 
         # Strict Biometric Duplicate Face Check:
         # Prevent any student from enrolling under multiple names with the same face.
         if encodings:
-            for existing_name, existing_vecs in encodings.items():
-                if existing_name.strip().lower() == name.strip().lower():
-                    continue
-                if not existing_vecs:
-                    continue
-
-                try:
-                    if face_recognition:
-                        min_dist = min([
-                            min(face_recognition.face_distance(existing_vecs, v))
-                            for v in known_face_encodings
-                        ])
-                        threshold = 0.45
-                    else:
-                        existing_arr = np.array(existing_vecs)
-                        min_dist = min([
-                            float(np.min(np.linalg.norm(existing_arr - v, axis=1)))
-                            for v in known_face_encodings
-                        ])
-                        threshold = 0.35
-
-                    if min_dist < threshold:
-                        logger.warning(
-                            f"Duplicate face detected! Candidate '{name}' matched existing student '{existing_name}' (distance: {min_dist:.4f} < {threshold})"
-                        )
-                        return jsonify({
-                            'error': f'Biometric validation failed: This face is already enrolled under "{existing_name}". A student cannot be registered multiple times under different names.'
-                        }), 400
-                except Exception as ex:
-                    logger.error(f"Error checking face similarity against {existing_name}: {ex}")
-                    continue
+            is_dup, dup_name, dup_score = check_duplicate_face(
+                known_face_encodings,
+                encodings,
+                threshold=0.40,
+                exclude_name=name
+            )
+            if is_dup:
+                logger.warning(
+                    f"Duplicate face detected! Candidate '{name}' matched existing student '{dup_name}' (similarity: {dup_score:.4f} >= 0.40)"
+                )
+                return jsonify({
+                    'error': f'Biometric validation failed: This face is already enrolled under "{dup_name}". A student cannot be registered multiple times under different names.'
+                }), 400
 
         # 1. Insert student into Users table, company table, and default Leaves in PostgreSQL
         conn = get_db_connection()
