@@ -141,6 +141,39 @@ class ApiService {
   updateCompanySettings(settings) {
     return this.request('/company/settings', { method: 'PUT', body: settings });
   }
+
+  // Payroll Endpoints
+  getPayrollMembers() {
+    return this.request('/payroll/members', { method: 'GET' });
+  }
+
+  updateMemberSalary(userName, baseSalary) {
+    return this.request('/payroll/salary', {
+      method: 'POST',
+      body: { user_name: userName, base_salary: baseSalary }
+    });
+  }
+
+  calculatePayroll(month, year, workingDays = 26) {
+    const query = new URLSearchParams({ month, year, working_days: workingDays }).toString();
+    return this.request(`/payroll/calculate?${query}`, { method: 'GET' });
+  }
+
+  finalizePayroll(payload) {
+    return this.request('/payroll/finalize', {
+      method: 'POST',
+      body: payload
+    });
+  }
+
+  getPayrollHistory() {
+    return this.request('/payroll/history', { method: 'GET' });
+  }
+
+  getPayslip(userName, month, year) {
+    const query = new URLSearchParams({ user_name: userName, month, year }).toString();
+    return this.request(`/payroll/payslip?${query}`, { method: 'GET' });
+  }
 }
 
 export const api = new ApiService();

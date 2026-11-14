@@ -74,9 +74,32 @@ export const StudentAvatarIcon = ({ size = 20, className = '', style = {} }) => 
   </svg>
 );
 
+// 5. Payroll / Wallet Icon: Premium sleek card & wallet glyph
+export const PayrollWalletIcon = ({ size = 20, className = '', style = {} }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.9"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={{ flexShrink: 0, ...style }}
+    aria-hidden="true"
+  >
+    <rect x="2" y="6" width="20" height="15" rx="3" />
+    <path d="M6 6V4.5A2.5 2.5 0 0 1 8.5 2h7A2.5 2.5 0 0 1 18 4.5V6" />
+    <path d="M16 13.5h4v3h-4a1.5 1.5 0 0 1 0-3z" />
+    <circle cx="17.5" cy="15" r="0.75" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 export default {
   DashboardHouseIcon,
   AttendanceBadgeIcon,
   ScanViewfinderIcon,
-  StudentAvatarIcon
+  StudentAvatarIcon,
+  PayrollWalletIcon
 };

@@ -5,7 +5,8 @@ import {
   DashboardHouseIcon,
   AttendanceBadgeIcon,
   ScanViewfinderIcon,
-  StudentAvatarIcon
+  StudentAvatarIcon,
+  PayrollWalletIcon
 } from '../../components/CustomNavIcons';
 import '../../styles/ams-modern.css';
 
@@ -316,6 +317,152 @@ export default function UnifiedAdminPanel() {
     return matchesSearch;
   });
 
+  // ==========================================================================
+  // PAYROLL & COMPENSATION STATE & HANDLERS
+  // ==========================================================================
+  const currentJsDate = new Date();
+  const [payrollMonth, setPayrollMonth] = useState(currentJsDate.getMonth() + 1);
+  const [payrollYear, setPayrollYear] = useState(currentJsDate.getFullYear());
+  const [payrollWorkingDays, setPayrollWorkingDays] = useState(26);
+  const [payrollItems, setPayrollItems] = useState([]);
+  const [payrollSummary, setPayrollSummary] = useState(null);
+  const [payrollMembers, setPayrollMembers] = useState([]);
+  const [payrollHistory, setPayrollHistory] = useState([]);
+  const [payrollSubTab, setPayrollSubTab] = useState('run'); // 'run', 'salaries', 'history'
+  const [payrollLoading, setPayrollLoading] = useState(false);
+  const [payrollFinalizing, setPayrollFinalizing] = useState(false);
+  const [payrollAlert, setPayrollAlert] = useState({ text: '', type: '' });
+  const [payrollSearch, setPayrollSearch] = useState('');
+
+  // Payslip Modal
+  const [selectedPayslip, setSelectedPayslip] = useState(null);
+  const [showPayslipModal, setShowPayslipModal] = useState(false);
+
+  // Edit Salary Modal
+  const [salaryEditModal, setSalaryEditModal] = useState({ open: false, userName: '', baseSalary: 25000, saving: false });
+
+  const formatCurrency = (amount) => {
+    const val = Number(amount) || 0;
+    return '₹' + val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const getMonthName = (m) => {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[(parseInt(m, 10) - 1)] || `Month ${m}`;
+  };
+
+  const loadPayrollData = async (m = payrollMonth, y = payrollYear, wd = payrollWorkingDays) => {
+    setPayrollLoading(true);
+    setPayrollAlert({ text: '', type: '' });
+    try {
+      const res = await api.calculatePayroll(m, y, wd);
+      if (res) {
+        setPayrollItems(res.items || []);
+        setPayrollSummary(res.summary || null);
+      }
+    } catch (err) {
+      console.error("Error calculating payroll:", err);
+      setPayrollAlert({ text: err.message || 'Failed to calculate payroll from attendance records', type: 'error' });
+    } finally {
+      setPayrollLoading(false);
+    }
+  };
+
+  const loadPayrollMembers = async () => {
+    try {
+      const res = await api.getPayrollMembers();
+      if (res && res.members) {
+        setPayrollMembers(res.members);
+      }
+    } catch (err) {
+      console.error("Error loading payroll members:", err);
+    }
+  };
+
+  const loadPayrollHistory = async () => {
+    try {
+      const res = await api.getPayrollHistory();
+      if (res && res.history) {
+        setPayrollHistory(res.history);
+      }
+    } catch (err) {
+      console.error("Error loading payroll history:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'payroll') {
+      if (payrollSubTab === 'run') {
+        loadPayrollData(payrollMonth, payrollYear, payrollWorkingDays);
+      } else if (payrollSubTab === 'salaries') {
+        loadPayrollMembers();
+      } else if (payrollSubTab === 'history') {
+        loadPayrollHistory();
+      }
+    }
+  }, [activeTab, payrollSubTab]);
+
+  const handleFinalizePayroll = async () => {
+    if (!payrollItems || payrollItems.length === 0) return;
+    const confirmMsg = `Approve and finalize payroll for ${getMonthName(payrollMonth)} ${payrollYear}?\n\nTotal Net Disbursement: ${formatCurrency(payrollSummary?.total_payout)}\nTotal Employees: ${payrollSummary?.total_employees || payrollItems.length}\n\nThis will lock the monthly payroll and record individual payslips in the database.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setPayrollFinalizing(true);
+    try {
+      const res = await api.finalizePayroll({
+        month: payrollMonth,
+        year: payrollYear,
+        working_days: payrollWorkingDays,
+        items: payrollItems
+      });
+      setPayrollAlert({ text: res.message || 'Payroll finalized and locked successfully.', type: 'success' });
+      await loadPayrollData(payrollMonth, payrollYear, payrollWorkingDays);
+    } catch (err) {
+      console.error("Error finalizing payroll:", err);
+      setPayrollAlert({ text: err.message || 'Failed to finalize payroll', type: 'error' });
+    } finally {
+      setPayrollFinalizing(false);
+    }
+  };
+
+  const handleSaveSalary = async (e) => {
+    e.preventDefault();
+    if (!salaryEditModal.userName) return;
+    setSalaryEditModal(prev => ({ ...prev, saving: true }));
+    try {
+      await api.updateMemberSalary(salaryEditModal.userName, salaryEditModal.baseSalary);
+      setPayrollAlert({ text: `Base monthly salary for ${salaryEditModal.userName} updated to ${formatCurrency(salaryEditModal.baseSalary)}`, type: 'success' });
+      setSalaryEditModal({ open: false, userName: '', baseSalary: 25000, saving: false });
+      loadPayrollMembers();
+      loadPayrollData(payrollMonth, payrollYear, payrollWorkingDays);
+    } catch (err) {
+      console.error("Error updating salary:", err);
+      alert(err.message || 'Failed to update salary');
+      setSalaryEditModal(prev => ({ ...prev, saving: false }));
+    }
+  };
+
+  const handleOpenPayslip = (item) => {
+    setSelectedPayslip({
+      ...item,
+      month: payrollMonth,
+      year: payrollYear,
+      company_name: user?.company_name || 'Attendify Technologies Inc.',
+      date_generated: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    });
+    setShowPayslipModal(true);
+  };
+
+  const filteredPayrollItems = payrollItems.filter(it =>
+    it.user_name.toLowerCase().includes(payrollSearch.toLowerCase())
+  );
+  const filteredPayrollMembers = payrollMembers.filter(m =>
+    m.name.toLowerCase().includes(payrollSearch.toLowerCase())
+  );
+
   return (
     <div className="modern-app-layout">
       {/* Mobile Drawer Backdrop */}
@@ -399,6 +546,14 @@ export default function UnifiedAdminPanel() {
           </button>
 
           <button
+            className={`nav-item ${activeTab === 'payroll' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('payroll'); setMobileMenuOpen(false); }}
+          >
+            <PayrollWalletIcon size={20} />
+            Payroll
+          </button>
+
+          <button
             className="nav-item"
             onClick={() => { setShowSettingsModal(true); setMobileMenuOpen(false); }}
           >
@@ -455,6 +610,7 @@ export default function UnifiedAdminPanel() {
               {activeTab === 'attendance' && 'Live Attendance Roster'}
               {activeTab === 'mark-attendance' && 'Face Recognition Kiosk'}
               {activeTab === 'records' && 'Student Records & Management'}
+              {activeTab === 'payroll' && 'Payroll & Compensation'}
             </h1>
           </div>
 
@@ -515,6 +671,12 @@ export default function UnifiedAdminPanel() {
                 onClick={() => setActiveTab('records')}
               >
                 Records
+              </button>
+              <button
+                className={`pill-tab ${activeTab === 'payroll' ? 'active' : ''}`}
+                onClick={() => setActiveTab('payroll')}
+              >
+                Payroll
               </button>
             </div>
 
@@ -1009,10 +1171,14 @@ export default function UnifiedAdminPanel() {
                           {r.has_snapshot ? (
                             <button
                               className="btn-outline"
-                              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                              style={{ padding: '4px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                               onClick={() => setModalImage(r.snapshot_url)}
                             >
-                              📷 View Photo
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                <circle cx="12" cy="13" r="4"/>
+                              </svg>
+                              View Photo
                             </button>
                           ) : (
                             <span style={{ color: '#94A3B8', fontSize: '0.8rem' }}>No Photo</span>
@@ -1189,6 +1355,576 @@ export default function UnifiedAdminPanel() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* ==========================================================================
+              TAB 5: PAYROLL & COMPENSATION INTEGRATION
+              ========================================================================== */}
+          {activeTab === 'payroll' && (
+            <div className="payroll-container">
+              {/* Payroll Sub-Navigation Tabs */}
+              <div className="payroll-subnav">
+                <button
+                  type="button"
+                  className={`payroll-subnav-btn ${payrollSubTab === 'run' ? 'active' : ''}`}
+                  onClick={() => setPayrollSubTab('run')}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="2" width="16" height="20" rx="2"/>
+                    <line x1="8" y1="6" x2="16" y2="6"/>
+                    <line x1="16" y1="14" x2="16" y2="18"/>
+                    <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/>
+                  </svg>
+                  Monthly Run & Calculation
+                </button>
+
+                <button
+                  type="button"
+                  className={`payroll-subnav-btn ${payrollSubTab === 'salaries' ? 'active' : ''}`}
+                  onClick={() => setPayrollSubTab('salaries')}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                  Base Salary Setup
+                </button>
+
+                <button
+                  type="button"
+                  className={`payroll-subnav-btn ${payrollSubTab === 'history' ? 'active' : ''}`}
+                  onClick={() => setPayrollSubTab('history')}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  Finalized History
+                </button>
+              </div>
+
+              {/* Alert Notification */}
+              {payrollAlert.text && (
+                <div
+                  style={{
+                    padding: '12px 18px',
+                    borderRadius: '12px',
+                    fontSize: '0.86rem',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: payrollAlert.type === 'error' ? '#FEF2F2' : '#F0FDF4',
+                    border: `1px solid ${payrollAlert.type === 'error' ? '#FECACA' : '#BBF7D0'}`,
+                    color: payrollAlert.type === 'error' ? '#B91C1C' : '#15803D'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {payrollAlert.type === 'error' ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                      </svg>
+                    )}
+                    <span>{payrollAlert.text}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPayrollAlert({ text: '', type: '' })}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0 }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* -------------------------------------------------------------
+                  SUBTAB 1: MONTHLY RUN & BIOMETRIC CALCULATION
+                  ------------------------------------------------------------- */}
+              {payrollSubTab === 'run' && (
+                <>
+                  {/* Controls & Period Selector Bar */}
+                  <div className="payroll-filter-bar">
+                    <div className="payroll-controls-left">
+                      <div className="payroll-control-group">
+                        <label className="payroll-control-label">Month:</label>
+                        <select
+                          className="payroll-select"
+                          value={payrollMonth}
+                          onChange={(e) => setPayrollMonth(parseInt(e.target.value, 10))}
+                        >
+                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                            <option key={m} value={m}>{getMonthName(m)}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="payroll-control-group">
+                        <label className="payroll-control-label">Year:</label>
+                        <select
+                          className="payroll-select"
+                          value={payrollYear}
+                          onChange={(e) => setPayrollYear(parseInt(e.target.value, 10))}
+                        >
+                          {[2024, 2025, 2026, 2027].map(y => (
+                            <option key={y} value={y}>{y}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="payroll-control-group">
+                        <label className="payroll-control-label">Working Days:</label>
+                        <input
+                          type="number"
+                          className="payroll-input"
+                          style={{ width: '70px' }}
+                          min="1"
+                          max="31"
+                          value={payrollWorkingDays}
+                          onChange={(e) => setPayrollWorkingDays(Math.max(1, parseInt(e.target.value, 10) || 26))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="payroll-controls-right">
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        onClick={() => loadPayrollData(payrollMonth, payrollYear, payrollWorkingDays)}
+                        disabled={payrollLoading}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="23 4 23 10 17 10"/>
+                          <polyline points="1 20 1 14 7 14"/>
+                          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                        {payrollLoading ? 'Calculating...' : 'Recalculate'}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn-solid-primary"
+                        onClick={handleFinalizePayroll}
+                        disabled={payrollFinalizing || !payrollItems.length || payrollSummary?.is_locked}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        {payrollSummary?.is_locked ? (
+                          <>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            Locked & Approved
+                          </>
+                        ) : (
+                          <>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            {payrollFinalizing ? 'Finalizing...' : 'Approve & Finalize Month'}
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Top KPI Summary Cards */}
+                  <div className="payroll-kpi-grid">
+                    <div className="payroll-kpi-card">
+                      <div className="payroll-kpi-icon purple">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="6" width="20" height="15" rx="3"/>
+                          <path d="M6 6V4.5A2.5 2.5 0 0 1 8.5 2h7A2.5 2.5 0 0 1 18 4.5V6"/>
+                          <circle cx="16" cy="14" r="1.5"/>
+                        </svg>
+                      </div>
+                      <div className="payroll-kpi-info">
+                        <span className="payroll-kpi-label">Total Net Payout</span>
+                        <span className="payroll-kpi-val">
+                          {formatCurrency(payrollSummary?.total_payout || 0)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="payroll-kpi-card">
+                      <div className="payroll-kpi-icon blue">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                          <circle cx="9" cy="7" r="4"/>
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                      </div>
+                      <div className="payroll-kpi-info">
+                        <span className="payroll-kpi-label">Salaried Members</span>
+                        <span className="payroll-kpi-val">
+                          {payrollSummary?.total_employees || payrollItems.length} Staff
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="payroll-kpi-card">
+                      <div className="payroll-kpi-icon green">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                          <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                      </div>
+                      <div className="payroll-kpi-info">
+                        <span className="payroll-kpi-label">Avg Attendance Rate</span>
+                        <span className="payroll-kpi-val">
+                          {payrollSummary?.avg_attendance_rate || 0}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="payroll-kpi-card">
+                      <div className="payroll-kpi-icon amber">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                      </div>
+                      <div className="payroll-kpi-info">
+                        <span className="payroll-kpi-label">Run Status</span>
+                        <div>
+                          {payrollSummary?.is_locked ? (
+                            <span className="payroll-status-badge approved">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                              </svg>
+                              Approved & Locked
+                            </span>
+                          ) : (
+                            <span className="payroll-status-badge calculated">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                              </svg>
+                              Draft (Calculated)
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main Payroll Roster Breakdown Table */}
+                  <div className="modern-card">
+                    <div className="card-header-flex">
+                      <div>
+                        <h3 className="card-title">
+                          Attendance-Linked Payroll Roster ({filteredPayrollItems.length})
+                        </h3>
+                        <p className="card-subtitle">
+                          100% automated calculation derived from facial biometric punches for {getMonthName(payrollMonth)} {payrollYear}
+                        </p>
+                      </div>
+
+                      <div className="member-search-wrap">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="11" cy="11" r="8"/>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input
+                          type="text"
+                          className="member-search-input"
+                          placeholder="Search employee..."
+                          value={payrollSearch}
+                          onChange={(e) => setPayrollSearch(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="table-responsive">
+                      <table className="roster-table payroll-table">
+                        <thead>
+                          <tr>
+                            <th>Employee Name</th>
+                            <th>Base Monthly</th>
+                            <th>Working Days</th>
+                            <th>Present</th>
+                            <th>Half Days</th>
+                            <th>Absent (LOP)</th>
+                            <th>LOP Deduction</th>
+                            <th>Net Payable</th>
+                            <th>Status</th>
+                            <th style={{ textAlign: 'right' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredPayrollItems.map((item) => (
+                            <tr key={item.user_name}>
+                              <td>
+                                <div className="member-cell">
+                                  <div className="avatar">{item.user_name[0]}</div>
+                                  <div>
+                                    <div className="name">{item.user_name}</div>
+                                    <div className="sub">{user?.company_name || 'Staff Member'}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="payroll-num">
+                                {formatCurrency(item.base_salary)}
+                              </td>
+                              <td className="payroll-num">
+                                {item.working_days} d
+                              </td>
+                              <td className="payroll-num">
+                                <span style={{ color: '#15803D' }}>{item.present_days} d</span>
+                              </td>
+                              <td className="payroll-num">
+                                <span style={{ color: item.half_days > 0 ? '#D97706' : '#64748B' }}>
+                                  {item.half_days}
+                                </span>
+                              </td>
+                              <td className="payroll-num">
+                                <span style={{ color: item.absent_days > 0 ? '#EF4444' : '#64748B' }}>
+                                  {item.absent_days} d
+                                </span>
+                              </td>
+                              <td className="payroll-num lop">
+                                {item.lop_deduction > 0 ? `-${formatCurrency(item.lop_deduction)}` : '₹0.00'}
+                              </td>
+                              <td className="payroll-num net">
+                                {formatCurrency(item.net_pay)}
+                              </td>
+                              <td>
+                                {item.status === 'Approved' ? (
+                                  <span className="payroll-status-badge approved">Approved</span>
+                                ) : (
+                                  <span className="payroll-status-badge calculated">Calculated</span>
+                                )}
+                              </td>
+                              <td style={{ textAlign: 'right' }}>
+                                <div style={{ display: 'inline-flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                  <button
+                                    type="button"
+                                    className="payroll-btn-action payslip"
+                                    onClick={() => handleOpenPayslip(item)}
+                                    title="View Branded Payslip"
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                      <polyline points="14 2 14 8 20 8"/>
+                                      <line x1="16" y1="13" x2="8" y2="13"/>
+                                      <line x1="16" y1="17" x2="8" y2="17"/>
+                                    </svg>
+                                    View Payslip
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+
+                          {filteredPayrollItems.length === 0 && (
+                            <tr>
+                              <td colSpan="10" style={{ textAlign: 'center', padding: '40px 0', color: '#94A3B8' }}>
+                                {payrollLoading ? (
+                                  'Calculating payroll from biometric logs...'
+                                ) : (
+                                  'No employees or attendance records found for this period. Click "Recalculate" or ensure students are enrolled.'
+                                )}
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* -------------------------------------------------------------
+                  SUBTAB 2: BASE SALARY SETUP PER EMPLOYEE
+                  ------------------------------------------------------------- */}
+              {payrollSubTab === 'salaries' && (
+                <div className="modern-card">
+                  <div className="card-header-flex">
+                    <div>
+                      <h3 className="card-title">Employee Base Salary Configurations</h3>
+                      <p className="card-subtitle">
+                        Configure base monthly compensation & stipends used in 1-click biometric payroll calculations
+                      </p>
+                    </div>
+
+                    <div className="member-search-wrap">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                      </svg>
+                      <input
+                        type="text"
+                        className="member-search-input"
+                        placeholder="Search employee..."
+                        value={payrollSearch}
+                        onChange={(e) => setPayrollSearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="roster-table payroll-table">
+                      <thead>
+                        <tr>
+                          <th>Employee Name</th>
+                          <th>Base Monthly Salary</th>
+                          <th>Standard Daily Rate (26d)</th>
+                          <th style={{ textAlign: 'right' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredPayrollMembers.map((m) => (
+                          <tr key={m.name}>
+                            <td>
+                              <div className="member-cell">
+                                <div className="avatar">{m.name[0]}</div>
+                                <div>
+                                  <div className="name">{m.name}</div>
+                                  <div className="sub">{user?.company_name || 'Enrolled Staff'}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="payroll-num">
+                              {formatCurrency(m.base_salary)}
+                            </td>
+                            <td className="payroll-num" style={{ color: '#64748B' }}>
+                              {formatCurrency(m.base_salary / 26)} / day
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <button
+                                type="button"
+                                className="payroll-btn-action edit-salary"
+                                onClick={() => setSalaryEditModal({ open: true, userName: m.name, baseSalary: m.base_salary, saving: false })}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                Edit Salary
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+
+                        {filteredPayrollMembers.length === 0 && (
+                          <tr>
+                            <td colSpan="4" style={{ textAlign: 'center', padding: '36px 0', color: '#94A3B8' }}>
+                              No enrolled members found. Enroll members in the Records tab to configure salaries.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* -------------------------------------------------------------
+                  SUBTAB 3: FINALIZED HISTORICAL RUNS
+                  ------------------------------------------------------------- */}
+              {payrollSubTab === 'history' && (
+                <div className="modern-card">
+                  <div className="card-header-flex">
+                    <div>
+                      <h3 className="card-title">Past Finalized Payroll Runs</h3>
+                      <p className="card-subtitle">
+                        Historical locked records of approved disbursements and verified payslips
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      onClick={loadPayrollHistory}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <polyline points="1 20 1 14 7 14"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                      </svg>
+                      Refresh History
+                    </button>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="roster-table payroll-table">
+                      <thead>
+                        <tr>
+                          <th>Pay Period</th>
+                          <th>Total Staff</th>
+                          <th>Gross Payout</th>
+                          <th>LOP Deductions</th>
+                          <th>Net Disbursed</th>
+                          <th>Processed Date</th>
+                          <th>Status</th>
+                          <th style={{ textAlign: 'right' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {payrollHistory.map((h) => (
+                          <tr key={h.id}>
+                            <td style={{ fontWeight: 600, color: '#1E293B' }}>
+                              {getMonthName(h.month)} {h.year}
+                            </td>
+                            <td className="payroll-num">
+                              {h.total_employees} Employees
+                            </td>
+                            <td className="payroll-num">
+                              {formatCurrency(h.total_gross)}
+                            </td>
+                            <td className="payroll-num lop">
+                              -{formatCurrency(h.total_deductions)}
+                            </td>
+                            <td className="payroll-num net">
+                              {formatCurrency(h.total_net)}
+                            </td>
+                            <td style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                              {h.processed_at ? new Date(h.processed_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Approved'}
+                            </td>
+                            <td>
+                              <span className="payroll-status-badge approved">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                {h.status}
+                              </span>
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <button
+                                type="button"
+                                className="payroll-btn-action payslip"
+                                onClick={() => {
+                                  setPayrollMonth(h.month);
+                                  setPayrollYear(h.year);
+                                  setPayrollSubTab('run');
+                                  loadPayrollData(h.month, h.year, payrollWorkingDays);
+                                }}
+                              >
+                                Review Run
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+
+                        {payrollHistory.length === 0 && (
+                          <tr>
+                            <td colSpan="8" style={{ textAlign: 'center', padding: '36px 0', color: '#94A3B8' }}>
+                              No finalized payroll runs recorded yet. Finalize this month's payroll to create historical archives.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1437,6 +2173,284 @@ export default function UnifiedAdminPanel() {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================================================
+          MODAL 4: ATTENDIFY BRANDED PRINTABLE PAYSLIP MODAL
+          ========================================================================== */}
+      {showPayslipModal && selectedPayslip && (
+        <div className="payslip-modal-overlay" onClick={() => setShowPayslipModal(false)}>
+          <div className="payslip-modal-card" onClick={(e) => e.stopPropagation()}>
+            {/* Top Toolbar (Hidden on Print) */}
+            <div className="payslip-modal-actions-top">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6857DF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                <span>Attendify Verified Payslip</span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="btn-solid-primary"
+                  style={{ padding: '7px 14px', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  onClick={() => window.print()}
+                  title="Print or Save as PDF"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9"/>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                    <rect x="6" y="14" width="12" height="8"/>
+                  </svg>
+                  Print / Save PDF
+                </button>
+
+                <button
+                  type="button"
+                  className="icon-btn"
+                  style={{ width: '32px', height: '32px' }}
+                  onClick={() => setShowPayslipModal(false)}
+                  title="Close preview"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Payslip Sheet */}
+            <div className="payslip-sheet">
+              {/* Header */}
+              <div className="payslip-sheet-header">
+                <div className="payslip-brand-col">
+                  <div className="payslip-brand-mark">
+                    A
+                  </div>
+                  <div>
+                    <div className="payslip-brand-title">
+                      {selectedPayslip.company_name || 'Attendify Technologies'}
+                    </div>
+                    <div className="payslip-brand-sub">
+                      Automated Biometric Attendance & Payroll Reconciliation
+                    </div>
+                  </div>
+                </div>
+
+                <div className="payslip-sheet-title-col">
+                  <div className="payslip-badge-title">Salary Payslip</div>
+                  <div className="payslip-period-text">
+                    {getMonthName(selectedPayslip.month).toUpperCase()} {selectedPayslip.year}
+                  </div>
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="payslip-details-grid">
+                <div className="payslip-detail-item">
+                  <span className="payslip-detail-label">Employee Name</span>
+                  <span className="payslip-detail-value">{selectedPayslip.user_name}</span>
+                </div>
+
+                <div className="payslip-detail-item">
+                  <span className="payslip-detail-label">Organization</span>
+                  <span className="payslip-detail-value">{selectedPayslip.company_name || 'Attendify Tenant'}</span>
+                </div>
+
+                <div className="payslip-detail-item">
+                  <span className="payslip-detail-label">Pay Period</span>
+                  <span className="payslip-detail-value">
+                    01 {getMonthName(selectedPayslip.month).substring(0, 3)} - {selectedPayslip.working_days} {getMonthName(selectedPayslip.month).substring(0, 3)} {selectedPayslip.year}
+                  </span>
+                </div>
+
+                <div className="payslip-detail-item">
+                  <span className="payslip-detail-label">Issue Date</span>
+                  <span className="payslip-detail-value">{selectedPayslip.date_generated}</span>
+                </div>
+              </div>
+
+              {/* Attendance Strip */}
+              <div className="payslip-attendance-strip">
+                <div className="payslip-att-col">
+                  <div className="payslip-att-col-lbl">Total Working Days</div>
+                  <div className="payslip-att-col-val">{selectedPayslip.working_days}</div>
+                </div>
+                <div className="payslip-att-col">
+                  <div className="payslip-att-col-lbl">Days Present</div>
+                  <div className="payslip-att-col-val" style={{ color: '#15803D' }}>
+                    {selectedPayslip.present_days}
+                  </div>
+                </div>
+                <div className="payslip-att-col">
+                  <div className="payslip-att-col-lbl">Half Days</div>
+                  <div className="payslip-att-col-val" style={{ color: '#D97706' }}>
+                    {selectedPayslip.half_days}
+                  </div>
+                </div>
+                <div className="payslip-att-col">
+                  <div className="payslip-att-col-lbl">Absent (LOP) Days</div>
+                  <div className="payslip-att-col-val" style={{ color: '#EF4444' }}>
+                    {selectedPayslip.absent_days}
+                  </div>
+                </div>
+              </div>
+
+              {/* Breakdown Grid: Earnings vs Deductions */}
+              <div className="payslip-breakdown-grid">
+                {/* Left: Earnings */}
+                <div className="payslip-col-box">
+                  <div className="payslip-col-head">Earnings Breakdown</div>
+                  <div className="payslip-col-row">
+                    <span className="payslip-col-row-label">Base Monthly Salary</span>
+                    <span className="payslip-col-row-val">{formatCurrency(selectedPayslip.base_salary)}</span>
+                  </div>
+                  <div className="payslip-col-row">
+                    <span className="payslip-col-row-label">HRA & Allowances</span>
+                    <span className="payslip-col-row-val">₹0.00</span>
+                  </div>
+                  <div className="payslip-col-row">
+                    <span className="payslip-col-row-label">Performance Bonus</span>
+                    <span className="payslip-col-row-val">₹0.00</span>
+                  </div>
+                  <div className="payslip-col-row total-row">
+                    <span>Total Gross Earnings</span>
+                    <span>{formatCurrency(selectedPayslip.base_salary)}</span>
+                  </div>
+                </div>
+
+                {/* Right: Deductions */}
+                <div className="payslip-col-box">
+                  <div className="payslip-col-head">Deductions Breakdown</div>
+                  <div className="payslip-col-row">
+                    <span className="payslip-col-row-label">Loss of Pay (Absenteeism)</span>
+                    <span className="payslip-col-row-val" style={{ color: '#EF4444' }}>
+                      {selectedPayslip.lop_deduction > 0 ? `-${formatCurrency(selectedPayslip.lop_deduction)}` : '₹0.00'}
+                    </span>
+                  </div>
+                  <div className="payslip-col-row">
+                    <span className="payslip-col-row-label">Professional Tax</span>
+                    <span className="payslip-col-row-val">₹0.00</span>
+                  </div>
+                  <div className="payslip-col-row">
+                    <span className="payslip-col-row-label">Statutory Provident Fund</span>
+                    <span className="payslip-col-row-val">₹0.00</span>
+                  </div>
+                  <div className="payslip-col-row total-row">
+                    <span>Total Deductions</span>
+                    <span style={{ color: '#EF4444' }}>
+                      -{formatCurrency(selectedPayslip.lop_deduction)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Net Payable Highlight Card */}
+              <div className="payslip-net-box">
+                <div>
+                  <div className="payslip-net-label">Net Disbursed Pay</div>
+                  <div className="payslip-net-note">
+                    Verified through facial biometric attendance audit logs
+                  </div>
+                </div>
+                <div className="payslip-net-amount">
+                  {formatCurrency(selectedPayslip.net_pay)}
+                </div>
+              </div>
+
+              {/* Signatures & Verification */}
+              <div className="payslip-footer-signatures">
+                <div className="payslip-sig-box">
+                  <div className="payslip-sig-line"></div>
+                  <div className="payslip-sig-label">Employee Signature</div>
+                </div>
+
+                <div className="payslip-sig-box">
+                  <div className="payslip-sig-line"></div>
+                  <div className="payslip-sig-label">Authorized Signatory</div>
+                </div>
+              </div>
+
+              <div className="payslip-computer-gen">
+                This is a digitally generated document approved via Attendify Biometric Cloud. No physical signature is required.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================================================
+          MODAL 5: BASE SALARY CONFIGURATION MODAL
+          ========================================================================== */}
+      {salaryEditModal.open && (
+        <div
+          className="modern-modal-overlay"
+          onClick={() => !salaryEditModal.saving && setSalaryEditModal({ open: false, userName: '', baseSalary: 25000, saving: false })}
+        >
+          <div className="modern-modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="card-header-flex">
+              <div>
+                <h3 className="card-title">Configure Base Salary</h3>
+                <p className="card-subtitle">
+                  Set base monthly compensation for <strong>{salaryEditModal.userName}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                className="icon-btn"
+                style={{ width: '32px', height: '32px' }}
+                onClick={() => setSalaryEditModal({ open: false, userName: '', baseSalary: 25000, saving: false })}
+                disabled={salaryEditModal.saving}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSalary} style={{ marginTop: '16px' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>
+                  Base Monthly Salary (₹):
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="500"
+                  className="modern-input"
+                  value={salaryEditModal.baseSalary}
+                  onChange={(e) => setSalaryEditModal({ ...salaryEditModal, baseSalary: Math.max(0, parseFloat(e.target.value) || 0) })}
+                  required
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '1rem', fontWeight: 600 }}
+                />
+                <div style={{ marginTop: '6px', fontSize: '0.78rem', color: '#64748B' }}>
+                  Daily rate equivalent: ~{formatCurrency(salaryEditModal.baseSalary / 26)} / day (standard 26 working days)
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={() => setSalaryEditModal({ open: false, userName: '', baseSalary: 25000, saving: false })}
+                  disabled={salaryEditModal.saving}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-solid-primary"
+                  disabled={salaryEditModal.saving}
+                >
+                  {salaryEditModal.saving ? 'Updating...' : 'Save Base Salary'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
