@@ -21,10 +21,10 @@ india_offset = INDIA_OFFSET  # backwards compatibility
 
 def get_ist_now():
     """
-    Returns timezone-aware India Standard Time (UTC+5:30)
-    regardless of server's local OS timezone (fixes double-offset issue).
+    Returns naive datetime in India Standard Time (UTC+5:30)
+    regardless of server's local OS timezone (fixes double-offset issue and offset-naive vs offset-aware conflicts).
     """
-    return datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
+    return (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)).replace(tzinfo=None)
 
 if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
     TEMP_CHECKIN_IMAGES_DIR = "/tmp/temp_checkin_images"
@@ -249,6 +249,14 @@ def log_attendance(company_id, name, action):
         if action == 'checkout' and last[2] and not last[3]:
             last[3] = time_str
             last[6] = calculate_hours(last[2], time_str)
+            try:
+                hrs_float = float(last[6]) if last[6] else 0.0
+                if hrs_float >= req_hours * 0.75:
+                    last[7] = 'Full Day'
+                else:
+                    last[7] = 'Half Day'
+            except (ValueError, TypeError):
+                pass
             update_attendance_in_db(company_id, attendance)
             return True, last[6], last[7]
         elif action == 'checkin' and not last[2]:

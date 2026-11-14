@@ -171,22 +171,17 @@ def kiosk_scan(current_user):
         if checkin_str and not checkout_str:
             try:
                 checkin_dt = datetime.strptime(checkin_str, '%H:%M:%S').time()
-                checkin_full = datetime.combine(now.date(), checkin_dt)
-                time_worked = now - checkin_full
+                now_naive = now.replace(tzinfo=None) if hasattr(now, 'tzinfo') and now.tzinfo is not None else now
+                checkin_full = datetime.combine(now_naive.date(), checkin_dt)
+                time_worked = now_naive - checkin_full
 
-                # Enforce 6-hour minimum checkout rule
-                min_duration = timedelta(hours=6)
-                if time_worked < min_duration:
-                    remaining = min_duration - time_worked
-                    remaining_hrs = remaining.seconds // 3600
-                    remaining_mins = (remaining.seconds % 3600) // 60
+                # Prevent immediate accidental duplicate scan within 3 seconds
+                if time_worked.total_seconds() < 3:
                     return jsonify({
                         'status': 'checkout_blocked',
                         'name': matched_name,
                         'checkin_time': checkin_str,
-                        'remaining_hours': remaining_hrs,
-                        'remaining_minutes': remaining_mins,
-                        'message': f"Cannot check out yet. Minimum 6 hours required. Remaining: {remaining_hrs}h {remaining_mins}m."
+                        'message': f"Check-in just recorded at {checkin_str}. Please wait a moment before checking out."
                     }), 200
 
                 # Qualified for Check-Out

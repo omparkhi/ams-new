@@ -192,14 +192,15 @@ export default function UnifiedAdminPanel() {
         setRecognizedName(`✓ Recognized: ${result.name}`);
         const isCheckout = result.status === 'checkout_success';
         const isCompleted = result.status === 'already_completed';
-        const timeVal = result.checkin_time || result.checkout_time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const isBlocked = result.status === 'checkout_blocked';
+        const timeVal = result.checkout_time || result.checkin_time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         
         setAttendanceSuccessModal({
           open: true,
           name: result.name,
-          type: isCheckout ? 'checkout' : isCompleted ? 'info' : 'checkin',
+          type: isCheckout ? 'checkout' : isCompleted || isBlocked ? 'info' : 'checkin',
           time: timeVal,
-          statusBadge: result.day_status || (isCheckout ? 'Check-Out Recorded' : isCompleted ? 'Attendance Completed' : 'Check-In Recorded'),
+          statusBadge: isBlocked ? 'Scan Cooldown' : isCompleted ? 'Attendance Completed' : isCheckout ? 'Check-Out Recorded' : (result.day_status || 'Check-In Recorded'),
           message: result.message || 'Biometric attendance verified successfully!'
         });
       }
