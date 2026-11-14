@@ -92,7 +92,19 @@ def enroll_student(current_user):
         # Load existing encodings for this company
         encodings = load_encodings(company_id)
         if name in encodings:
-            return jsonify({'error': f'Student "{name}" is already registered in your company biometrics.'}), 400
+            # Check if user is already in Users table
+            conn_chk = get_db_connection()
+            user_already_registered = False
+            if conn_chk:
+                try:
+                    c = conn_chk.cursor()
+                    c.execute('SELECT 1 FROM Users WHERE "Company ID" = ? AND "User Name" = ?', (company_id, name))
+                    user_already_registered = c.fetchone() is not None
+                finally:
+                    conn_chk.close()
+            if user_already_registered:
+                return jsonify({'error': f'Student "{name}" is already registered in your company biometrics.'}), 400
+            # If in encodings but NOT in Users table (prior partial enrollment attempt), allow completing enrollment!
 
         known_face_encodings = []
 
@@ -162,43 +174,47 @@ def enroll_student(current_user):
                     v = rng.randn(128).astype(np.float64)
                     known_face_encodings.append(v / np.linalg.norm(v))
 
-        # Save embeddings into tenant's pickle cache
+        # 1. Insert student into Users table, company table, and default Leaves in PostgreSQL
+        conn = get_db_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                # Ensure company table exists
+                cursor.execute(f'CREATE TABLE IF NOT EXISTS "{table_name}" (Name TEXT)')
+
+                # Insert into Users table
+                cursor.execute(
+                    'INSERT INTO Users ("Company ID", "User Name") VALUES (?, ?) ON CONFLICT ("Company ID", "User Name") DO NOTHING',
+                    (company_id, name)
+                )
+
+                # Insert into company-specific table
+                cursor.execute(f'INSERT INTO "{table_name}" (Name) VALUES (?)', (name,))
+
+                # Initialize default leave balance for current month
+                now = datetime.datetime.now()
+                year_month = now.strftime('%Y-%m')
+                cursor.execute('''
+                    INSERT INTO Leaves ("Company ID", "User Name", "Year-Month", "Leaves Allowed", "Leaves Taken", "Leaves Carried")
+                    VALUES (?, ?, ?, '2', '0', '0')
+                    ON CONFLICT ("Company ID", "User Name", "Year-Month") DO NOTHING
+                ''', (company_id, name, year_month))
+
+                conn.commit()
+            except Exception as err:
+                logger.error(f"DB insert error during enrollment: {err}")
+                conn.rollback()
+                return jsonify({'error': f'Database error: {str(err)}'}), 500
+            finally:
+                conn.close()
+
+        # 2. Save embeddings into tenant's persistent PostgreSQL FaceEmbeddings table
         encodings[name] = known_face_encodings
         try:
             save_encodings(company_id, encodings)
         except Exception as e:
             logger.error(f"Failed to save biometric encodings: {e}")
             return jsonify({'error': f'Failed to save biometric encodings: {str(e)}'}), 500
-
-        # Insert student into Users table and dynamic company table
-        conn = get_db_connection()
-        if conn:
-            try:
-                cursor = conn.cursor()
-                # Ensure company table exists
-                cursor.execute(f'CREATE TABLE IF NOT EXISTS `{table_name}` (Name TEXT)')
-
-                # 1. Insert into Users table
-                cursor.execute('INSERT INTO Users ("Company ID", "User Name") VALUES (?, ?)', (company_id, name))
-
-                # 2. Insert into company-specific table
-                cursor.execute(f'INSERT INTO `{table_name}` (Name) VALUES (?)', (name,))
-
-                # 3. Initialize default leave balance for current month
-                now = datetime.datetime.now()
-                year_month = now.strftime('%Y-%m')
-                cursor.execute('''
-                    INSERT OR REPLACE INTO Leaves ("Company ID", "User Name", "Year-Month", "Leaves Allowed", "Leaves Taken", "Leaves Carried")
-                    VALUES (?, ?, ?, 2, 0, 0)
-                ''', (company_id, name, year_month))
-
-                conn.commit()
-            except sqlite3.Error as err:
-                logger.error(f"DB insert error during enrollment: {err}")
-                conn.rollback()
-                return jsonify({'error': f'Database error: {str(err)}'}), 500
-            finally:
-                conn.close()
 
         return jsonify({
             'success': True,
@@ -224,14 +240,17 @@ def delete_student(current_user, name):
     company_id = current_user.get('company_id')
     table_name = company_id.replace(" ", "_")
 
-    # 1. Delete from database
+    # 1. Delete from database across Users, company table, Leaves, AttendanceRecords, SalaryStructures, and FaceEmbeddings
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor()
             cursor.execute('DELETE FROM Users WHERE "Company ID" = ? AND "User Name" = ?', (company_id, name))
-            cursor.execute(f'DELETE FROM `{table_name}` WHERE Name = ?', (name,))
+            cursor.execute(f'DELETE FROM "{table_name}" WHERE Name = ?', (name,))
             cursor.execute('DELETE FROM Leaves WHERE "Company ID" = ? AND "User Name" = ?', (company_id, name))
+            cursor.execute('DELETE FROM AttendanceRecords WHERE company_id = ? AND user_name = ?', (company_id, name))
+            cursor.execute('DELETE FROM SalaryStructures WHERE company_id = ? AND user_name = ?', (company_id, name))
+            cursor.execute('DELETE FROM FaceEmbeddings WHERE company_id = ? AND user_name = ?', (company_id, name))
             conn.commit()
         except Exception as e:
             conn.rollback()
@@ -239,7 +258,7 @@ def delete_student(current_user, name):
         finally:
             conn.close()
 
-    # 2. Purge face encodings from pickle file
+    # 2. Purge face encodings from local cache
     try:
         encodings = load_encodings(company_id)
         if name in encodings:

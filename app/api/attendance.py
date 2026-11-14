@@ -104,7 +104,7 @@ def force_checkout(current_user):
     """
     company_id = current_user.get('company_id')
     data = request.get_json(silent=True) or {}
-    name = data.get('name', '').strip()
+    name = (data.get('name') or data.get('student_name') or '').strip()
 
     if not name:
         return jsonify({'error': 'Student name is required.'}), 400
@@ -157,7 +157,7 @@ def force_checkin(current_user):
     """
     company_id = current_user.get('company_id')
     data = request.get_json(silent=True) or {}
-    name = data.get('name', '').strip()
+    name = (data.get('name') or data.get('student_name') or '').strip()
 
     if not name:
         return jsonify({'error': 'Student name is required.'}), 400

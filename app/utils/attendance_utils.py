@@ -102,10 +102,10 @@ def read_attendance_from_db(company_id):
             conn.close()
             return attendance
 
-        # 2. Fallback for legacy tables if any
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (clean_id,))
+        # 2. Fallback for legacy dynamic company tables if any
+        cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = %s", (clean_id.lower(),))
         if cursor.fetchone():
-            cursor.execute(f"SELECT * FROM '{clean_id}'")
+            cursor.execute(f'SELECT * FROM "{clean_id}"')
             legacy_rows = cursor.fetchall()
             if legacy_rows:
                 columns = [desc[0] for desc in cursor.description]
@@ -127,9 +127,16 @@ def read_attendance_from_db(company_id):
                             # Auto-migrate legacy row to AttendanceRecords
                             try:
                                 cursor.execute("""
-                                    INSERT OR REPLACE INTO AttendanceRecords
+                                    INSERT INTO AttendanceRecords
                                     (company_id, user_name, date, in_time, out_time, status, expected_checkout, hours, day_status)
-                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                    ON CONFLICT (company_id, user_name, date) DO UPDATE SET
+                                        in_time = EXCLUDED.in_time,
+                                        out_time = EXCLUDED.out_time,
+                                        status = EXCLUDED.status,
+                                        expected_checkout = EXCLUDED.expected_checkout,
+                                        hours = EXCLUDED.hours,
+                                        day_status = EXCLUDED.day_status
                                 """, (clean_id, name, d, it, ot, st, exp, hrs, ds))
                             except Exception:
                                 pass
@@ -371,7 +378,7 @@ def get_table_name_if_exists(table_name):
         if not conn:
             return None
         cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+        cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND lower(table_name) = lower(%s)", (table_name,))
         result = cursor.fetchone()
         conn.close()
         return result[0] if result else None
