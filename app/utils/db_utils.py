@@ -82,7 +82,8 @@ import sqlite3
 import logging
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-DB_PATH = os.path.join(BASE_DIR, "sqlite_exports", "attendance_data.db")
+DB_PATH = os.environ.get('DB_PATH') or os.path.join(BASE_DIR, "sqlite_exports", "attendance_data.db")
+os.makedirs(os.path.dirname(os.path.abspath(DB_PATH)), exist_ok=True)
 
 # In serverless environments (like Vercel), the filesystem outside of /tmp is read-only.
 # Copy database to /tmp so read/write queries succeed without permission errors.
