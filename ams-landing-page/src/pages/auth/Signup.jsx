@@ -80,7 +80,7 @@ export default function Signup() {
           loading="lazy"
         />
 
-        {/* Header with Centered Attendify Logo & Heading */}
+        {/* Compact Header with Centered Attendify Logo & Heading */}
         <header className="signup-header">
           <Link to="/" className="signup-logo-link" title="Attendify Home">
             <img
@@ -91,17 +91,16 @@ export default function Signup() {
           </Link>
           <h1 className="signup-main-title">Create Your Organization</h1>
           <p className="signup-main-subtitle">
-            Set up your organization in minutes and start smart attendance<br />
-            for your students, interns, or team.
+            Set up your organization in minutes and start smart attendance for your students, interns, or team.
           </p>
         </header>
 
-        {/* Main Registration Card */}
+        {/* Main Compact Registration Card */}
         <main className="signup-card-container">
           {/* Error Alert if any */}
           {error && (
             <div className="signup-alert-error" role="alert">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '1px' }}>
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -109,7 +108,7 @@ export default function Signup() {
               <div style={{ flex: 1 }}>
                 <div>{error}</div>
                 {error.toLowerCase().includes('already') && (
-                  <div style={{ marginTop: '6px' }}>
+                  <div style={{ marginTop: '4px' }}>
                     <Link to="/login" style={{ color: '#B91C1C', fontWeight: '700', textDecoration: 'underline' }}>
                       Click here to Sign In with your existing account →
                     </Link>
@@ -127,7 +126,7 @@ export default function Signup() {
               </label>
               <div className="signup-input-box">
                 <span className="signup-input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
                     <path d="M9 22v-4h6v4"></path>
                     <line x1="8" y1="6" x2="8.01" y2="6"></line>
@@ -161,7 +160,7 @@ export default function Signup() {
               </label>
               <div className="signup-input-box">
                 <span className="signup-input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
@@ -188,7 +187,7 @@ export default function Signup() {
                 </label>
                 <div className="signup-input-box">
                   <span className="signup-input-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
@@ -198,7 +197,7 @@ export default function Signup() {
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     required
-                    placeholder="Create a strong password"
+                    placeholder="Create password"
                     value={formData.password}
                     onChange={handleChange}
                     className="signup-text-input"
@@ -212,12 +211,12 @@ export default function Signup() {
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                         <line x1="1" y1="1" x2="23" y2="23"></line>
                       </svg>
                     ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="13" r="3"></circle>
                       </svg>
@@ -232,7 +231,7 @@ export default function Signup() {
                 </label>
                 <div className="signup-input-box">
                   <span className="signup-input-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
@@ -242,7 +241,7 @@ export default function Signup() {
                     type={showConfirmPassword ? 'text' : 'password'}
                     name="confirm_password"
                     required
-                    placeholder="Re-enter your password"
+                    placeholder="Re-enter password"
                     value={formData.confirm_password}
                     onChange={handleChange}
                     className="signup-text-input"
@@ -256,12 +255,12 @@ export default function Signup() {
                     aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                   >
                     {showConfirmPassword ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                         <line x1="1" y1="1" x2="23" y2="23"></line>
                       </svg>
                     ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="13" r="3"></circle>
                       </svg>
@@ -271,21 +270,21 @@ export default function Signup() {
               </div>
             </div>
 
-            {/* Shift Timings & Rules Box */}
+            {/* Shift Timings & Rules Box - Compact */}
             <div className="signup-shift-box">
               <div className="signup-shift-icon-circle">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"></circle>
                   <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
               </div>
               <div className="signup-shift-text-wrap">
-                <h3 className="signup-shift-heading">Shift Timings & Rules</h3>
+                <h3 className="signup-shift-heading">Shift Timings &amp; Rules</h3>
                 <p className="signup-shift-subtext">Define your organization's attendance policy</p>
               </div>
             </div>
 
-            {/* 3 Dropdowns (Check-In Time, Check-Out Time, Required Hours) */}
+            {/* 3 Dropdowns (Check-In Time, Check-Out Time, Required Hours) - Compact */}
             <div className="signup-grid-3">
               <div>
                 <label className="signup-form-label" htmlFor="check_in_time">
@@ -293,7 +292,7 @@ export default function Signup() {
                 </label>
                 <div className="signup-select-wrapper">
                   <span className="signup-select-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10"></circle>
                       <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
@@ -314,7 +313,7 @@ export default function Signup() {
                     <option value="11:00">11:00 AM</option>
                   </select>
                   <span className="signup-select-chevron">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                   </span>
@@ -327,7 +326,7 @@ export default function Signup() {
                 </label>
                 <div className="signup-select-wrapper">
                   <span className="signup-select-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10"></circle>
                       <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
@@ -350,7 +349,7 @@ export default function Signup() {
                     <option value="20:00">08:00 PM</option>
                   </select>
                   <span className="signup-select-chevron">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                   </span>
@@ -363,7 +362,7 @@ export default function Signup() {
                 </label>
                 <div className="signup-select-wrapper">
                   <span className="signup-select-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="13" r="8"></circle>
                       <path d="M12 9v4l2 2"></path>
                       <path d="M5 3L2 6"></path>
@@ -389,7 +388,7 @@ export default function Signup() {
                     <option value="10.0">10 Hours</option>
                   </select>
                   <span className="signup-select-chevron">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                   </span>
@@ -397,7 +396,7 @@ export default function Signup() {
               </div>
             </div>
 
-            {/* Primary CTA Submit Button */}
+            {/* Primary CTA Submit Button - Compact */}
             <button
               type="submit"
               disabled={submitting}
@@ -405,7 +404,7 @@ export default function Signup() {
             >
               {submitting ? (
                 <>
-                  <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
                     <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
                   </svg>
                   <span>Creating Organization...</span>
@@ -413,7 +412,7 @@ export default function Signup() {
               ) : (
                 <>
                   <span>Register Organization &amp; Enter App</span>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
@@ -431,10 +430,10 @@ export default function Signup() {
           </div>
         </main>
 
-        {/* Trust Badges Row (Below Card) */}
+        {/* Compact Trust Badges Row (Below Card) */}
         <footer className="signup-trust-row" aria-label="Trust assurances">
           <div className="signup-trust-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
             </svg>
             <span>Instant setup</span>
@@ -443,7 +442,7 @@ export default function Signup() {
           <span className="signup-trust-divider">|</span>
 
           <div className="signup-trust-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
             </svg>
             <span>Multi-tenant cloud isolated</span>
@@ -452,7 +451,7 @@ export default function Signup() {
           <span className="signup-trust-divider">|</span>
 
           <div className="signup-trust-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
               <line x1="8" y1="21" x2="16" y2="21"></line>
               <line x1="12" y1="17" x2="12" y2="21"></line>
