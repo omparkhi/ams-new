@@ -38,12 +38,17 @@ def list_students(current_user):
         users = [row['User Name'] for row in cursor.fetchall()]
 
         encodings = load_encodings(company_id)
+        from app.utils.attendance_utils import TEMP_CHECKIN_IMAGES_DIR
+        import urllib.parse
         students = []
         for name in users:
+            profile_name = f"{company_id}_{name}_profile.jpg"
+            has_profile = os.path.exists(os.path.join(TEMP_CHECKIN_IMAGES_DIR, profile_name))
             students.append({
                 'name': name,
                 'has_biometrics': name in encodings,
-                'vector_count': len(encodings.get(name, []))
+                'vector_count': len(encodings.get(name, [])),
+                'avatar_url': f"/api/attendance/snapshot/{urllib.parse.quote(profile_name)}" if has_profile else None
             })
 
         return jsonify({'students': students, 'total': len(students)}), 200
@@ -174,6 +179,41 @@ def enroll_student(current_user):
                     v = rng.randn(128).astype(np.float64)
                     known_face_encodings.append(v / np.linalg.norm(v))
 
+        # Strict Biometric Duplicate Face Check:
+        # Prevent any student from enrolling under multiple names with the same face.
+        if encodings:
+            for existing_name, existing_vecs in encodings.items():
+                if existing_name.strip().lower() == name.strip().lower():
+                    continue
+                if not existing_vecs:
+                    continue
+
+                try:
+                    if face_recognition:
+                        min_dist = min([
+                            min(face_recognition.face_distance(existing_vecs, v))
+                            for v in known_face_encodings
+                        ])
+                        threshold = 0.45
+                    else:
+                        existing_arr = np.array(existing_vecs)
+                        min_dist = min([
+                            float(np.min(np.linalg.norm(existing_arr - v, axis=1)))
+                            for v in known_face_encodings
+                        ])
+                        threshold = 0.35
+
+                    if min_dist < threshold:
+                        logger.warning(
+                            f"Duplicate face detected! Candidate '{name}' matched existing student '{existing_name}' (distance: {min_dist:.4f} < {threshold})"
+                        )
+                        return jsonify({
+                            'error': f'Biometric validation failed: This face is already enrolled under "{existing_name}". A student cannot be registered multiple times under different names.'
+                        }), 400
+                except Exception as ex:
+                    logger.error(f"Error checking face similarity against {existing_name}: {ex}")
+                    continue
+
         # 1. Insert student into Users table, company table, and default Leaves in PostgreSQL
         conn = get_db_connection()
         if conn:
@@ -215,6 +255,24 @@ def enroll_student(current_user):
         except Exception as e:
             logger.error(f"Failed to save biometric encodings: {e}")
             return jsonify({'error': f'Failed to save biometric encodings: {str(e)}'}), 500
+
+        # 3. Save student reference portrait snapshot image
+        try:
+            from app.utils.attendance_utils import TEMP_CHECKIN_IMAGES_DIR
+            os.makedirs(TEMP_CHECKIN_IMAGES_DIR, exist_ok=True)
+            profile_filename = f"{company_id}_{name}_profile.jpg"
+            profile_path = os.path.join(TEMP_CHECKIN_IMAGES_DIR, profile_filename)
+
+            first_img_data = images[0]
+            if ',' in first_img_data:
+                first_img_data = first_img_data.split(',')[1]
+            first_img_data += '=' * (-len(first_img_data) % 4)
+            profile_bytes = base64.b64decode(first_img_data)
+            with open(profile_path, "wb") as pf:
+                pf.write(profile_bytes)
+            logger.info(f"Persisted profile snapshot for {name} to {profile_filename}")
+        except Exception as e:
+            logger.warning(f"Could not persist student profile avatar image: {e}")
 
         return jsonify({
             'success': True,

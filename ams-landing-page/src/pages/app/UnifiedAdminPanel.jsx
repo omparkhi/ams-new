@@ -12,6 +12,15 @@ import '../../styles/ams-modern.css';
 import AMS from "../../assets/ams2.png";
 import { formatTimeIST, formatShiftTime, getLiveTimeIST } from '../../utils/timeUtils';
 
+const resolveImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url;
+  }
+  const apiOrigin = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api').replace(/\/api\/?$/, '');
+  return `${apiOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export default function UnifiedAdminPanel() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'attendance', 'mark-attendance', 'records'
@@ -1190,7 +1199,7 @@ export default function UnifiedAdminPanel() {
                           <div className="user-thumb-circle">
                             {!avatarErrors[`act_${r.name}`] && r.has_snapshot && r.snapshot_url ? (
                               <img
-                                src={r.snapshot_url}
+                                src={resolveImageUrl(r.snapshot_url)}
                                 alt={r.name}
                                 onError={() => setAvatarErrors(prev => ({ ...prev, [`act_${r.name}`]: true }))}
                               />
@@ -1284,12 +1293,12 @@ export default function UnifiedAdminPanel() {
                           <div
                             className="member-avatar-box"
                             style={{ cursor: r.has_snapshot ? 'pointer' : 'default' }}
-                            onClick={() => r.has_snapshot && setModalImage(r.snapshot_url)}
+                            onClick={() => r.has_snapshot && setModalImage(resolveImageUrl(r.snapshot_url))}
                             title={r.has_snapshot ? 'Click to view biometric snapshot' : r.name}
                           >
                             {!avatarErrors[r.name] && r.has_snapshot && r.snapshot_url ? (
                               <img
-                                src={r.snapshot_url}
+                                src={resolveImageUrl(r.snapshot_url)}
                                 alt={r.name}
                                 onError={() => setAvatarErrors(prev => ({ ...prev, [r.name]: true }))}
                                 className="member-avatar-img"
@@ -1446,7 +1455,7 @@ export default function UnifiedAdminPanel() {
                             <button
                               className="btn-outline"
                               style={{ padding: '4px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                              onClick={() => setModalImage(r.snapshot_url)}
+                              onClick={() => setModalImage(resolveImageUrl(r.snapshot_url))}
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
@@ -1577,7 +1586,18 @@ export default function UnifiedAdminPanel() {
                       <tr key={s.name}>
                         <td>
                           <div className="member-cell">
-                            <div className="avatar">{s.name[0]}</div>
+                            <div className="avatar" style={{ overflow: 'hidden', padding: 0 }}>
+                              {!avatarErrors[`rec_${s.name}`] && s.avatar_url ? (
+                                <img
+                                  src={resolveImageUrl(s.avatar_url)}
+                                  alt={s.name}
+                                  onError={() => setAvatarErrors(prev => ({ ...prev, [`rec_${s.name}`]: true }))}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                              ) : (
+                                s.name[0]
+                              )}
+                            </div>
                             <div>
                               <div className="name">{s.name}</div>
                               <div className="sub">{user?.company_name}</div>

@@ -70,7 +70,23 @@ def get_today_attendance(current_user):
             absent_count += 1
 
         snapshot_name = f"{company_id}_{name}_{today.replace('/', '-')}.jpg"
-        has_snapshot = os.path.exists(os.path.join(TEMP_CHECKIN_IMAGES_DIR, snapshot_name))
+        profile_name = f"{company_id}_{name}_profile.jpg"
+
+        has_today_snapshot = os.path.exists(os.path.join(TEMP_CHECKIN_IMAGES_DIR, snapshot_name))
+        has_profile = os.path.exists(os.path.join(TEMP_CHECKIN_IMAGES_DIR, profile_name))
+
+        if has_today_snapshot:
+            chosen_img = snapshot_name
+            has_snapshot = True
+        elif has_profile:
+            chosen_img = profile_name
+            has_snapshot = True
+        else:
+            chosen_img = None
+            has_snapshot = False
+
+        import urllib.parse
+        encoded_img = urllib.parse.quote(chosen_img) if chosen_img else None
 
         roster.append({
             'name': name,
@@ -81,7 +97,8 @@ def get_today_attendance(current_user):
             'day_status': day_status,
             'allow_checkout': allow_checkout,
             'has_snapshot': has_snapshot,
-            'snapshot_url': f"/api/attendance/snapshot/{snapshot_name}" if has_snapshot else None
+            'has_today_snapshot': has_today_snapshot,
+            'snapshot_url': f"/api/attendance/snapshot/{encoded_img}" if encoded_img else None
         })
 
     return jsonify({
@@ -132,14 +149,6 @@ def force_checkout(current_user):
 
     if updated:
         update_attendance_in_db(company_id, attendance)
-        snapshot_name = f"{company_id}_{name}_{today.replace('/', '-')}.jpg"
-        snapshot_path = os.path.join(TEMP_CHECKIN_IMAGES_DIR, snapshot_name)
-        if os.path.exists(snapshot_path):
-            try:
-                os.remove(snapshot_path)
-            except Exception:
-                pass
-
         return jsonify({
             'success': True,
             'message': f'Checkout forced for {name} at {format_time_ist(time_str)}. Hours logged: {hours_worked}.',
@@ -225,9 +234,15 @@ def get_snapshot(filename):
     """
     Serves a temporary check-in image for supervisor review.
     """
-    file_path = os.path.join(TEMP_CHECKIN_IMAGES_DIR, filename)
-    if os.path.exists(file_path):
-        return send_file(file_path, mimetype='image/jpeg')
+    import urllib.parse
+    decoded = urllib.parse.unquote(filename)
+    candidates = [
+        os.path.join(TEMP_CHECKIN_IMAGES_DIR, decoded),
+        os.path.join(TEMP_CHECKIN_IMAGES_DIR, filename)
+    ]
+    for path in candidates:
+        if os.path.exists(path) and os.path.isfile(path):
+            return send_file(path, mimetype='image/jpeg')
     return jsonify({'error': 'Image snapshot not found.'}), 404
 
 

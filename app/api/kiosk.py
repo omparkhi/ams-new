@@ -189,12 +189,12 @@ def kiosk_scan(current_user):
                 # Qualified for Check-Out
                 success, hours, day_status = log_attendance(company_id, matched_name, 'checkout')
                 if success:
-                    # Delete temporary snapshot proof on successful checkout
-                    if os.path.exists(snapshot_path):
-                        try:
-                            os.remove(snapshot_path)
-                        except Exception as e:
-                            logger.warning(f"Could not delete checkin snapshot: {e}")
+                    # Preserve check-in snapshot proof for supervisor review, and optionally save checkout snapshot
+                    try:
+                        checkout_filename = f"{company_id}_{matched_name}_{today.replace('/', '-')}_out.jpg"
+                        pil_image.save(os.path.join(TEMP_CHECKIN_IMAGES_DIR, checkout_filename))
+                    except Exception as e:
+                        logger.warning(f"Could not save checkout snapshot: {e}")
 
                     return jsonify({
                         'status': 'checkout_success',
