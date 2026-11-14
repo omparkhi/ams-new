@@ -9,6 +9,7 @@ import {
   PayrollWalletIcon
 } from '../../components/CustomNavIcons';
 import '../../styles/ams-modern.css';
+import AMS from "../../assets/ams2.png";
 
 export default function UnifiedAdminPanel() {
   const { user, logout } = useAuth();
@@ -477,29 +478,18 @@ export default function UnifiedAdminPanel() {
           ========================================================================== */}
       <aside className={`modern-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
         <div className="sidebar-brand-row">
-          {/* <a
+          <a
             href="#/app"
-            className="sidebar-brand"
+            className="sidebar-brand-link"
             onClick={() => setMobileMenuOpen(false)}
-            style={{
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-              padding: '8px 16px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.12)',
-              marginBottom: '16px',
-              width: '100%',
-              justifyContent: 'center'
-            }}
-          > */}
-          <img
-            src="../../assets/ams2.png"
-            alt="Attendify"
-            style={{ height: '28px', width: 'auto', display: 'block', objectFit: 'contain' }}
-          />
-          {/* </a> */}
+            title="Attendify Dashboard"
+          >
+            <img
+              src={AMS}
+              alt="Attendify"
+              className="sidebar-brand-logo"
+            />
+          </a>
           <button
             className="sidebar-close-btn"
             onClick={() => setMobileMenuOpen(false)}

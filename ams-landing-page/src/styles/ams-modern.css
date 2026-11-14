@@ -112,12 +112,42 @@ body {
 .sidebar-brand-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  position: relative;
   width: 100%;
+  margin-bottom: 24px;
+  padding: 4px 0 8px 0;
+}
+
+.sidebar-brand-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-decoration: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-brand-link:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.sidebar-brand-logo {
+  height: 38px;
+  max-width: 165px;
+  width: auto;
+  display: block;
+  margin: 0 auto;
+  object-fit: contain;
 }
 
 .sidebar-close-btn {
   display: none;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   background: transparent;
   border: none;
   color: var(--text-muted);
