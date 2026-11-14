@@ -10,6 +10,7 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     company_name: '',
     username: '',
+    email: '',
     password: '',
     confirm_password: '',
     check_in_time: '09:00',
@@ -31,6 +32,22 @@ export default function Signup() {
     e.preventDefault();
     setError('');
 
+    if (!formData.company_name.trim()) {
+      setError('Company or institution name is required.');
+      return;
+    }
+
+    if (!formData.username.trim()) {
+      setError('Admin username is required.');
+      return;
+    }
+
+    const emailTrimmed = formData.email.trim();
+    if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+      setError('Please enter a valid work email address (e.g. admin@company.com).');
+      return;
+    }
+
     if (formData.password !== formData.confirm_password) {
       setError('Passwords do not match. Please verify both password fields.');
       return;
@@ -46,7 +63,7 @@ export default function Signup() {
       await register({
         company_name: formData.company_name.trim(),
         username: formData.username.trim(),
-        email: `${formData.username.trim()}@${formData.company_name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'company'}.local`,
+        email: emailTrimmed,
         password: formData.password,
         check_in_time: formData.check_in_time,
         check_out_time: formData.check_out_time,
@@ -146,29 +163,56 @@ export default function Signup() {
               </div>
             </div>
 
-            {/* Username */}
-            <div className="signup-form-group">
-              <label className="signup-form-label" htmlFor="username">
-                Username <span className="required-star">*</span>
-              </label>
-              <div className="signup-input-box">
-                <span className="signup-input-icon">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                </span>
-                <input
-                  id="username"
-                  type="text"
-                  name="username"
-                  required
-                  placeholder="Choose an admin username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="signup-text-input"
-                  autoComplete="username"
-                />
+            {/* Username & Work Email (2-col grid) */}
+            <div className="signup-grid-2">
+              <div>
+                <label className="signup-form-label" htmlFor="username">
+                  Username <span className="required-star">*</span>
+                </label>
+                <div className="signup-input-box">
+                  <span className="signup-input-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </span>
+                  <input
+                    id="username"
+                    type="text"
+                    name="username"
+                    required
+                    placeholder="Admin username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    className="signup-text-input"
+                    autoComplete="username"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="signup-form-label" htmlFor="email">
+                  Work Email <span className="required-star">*</span>
+                </label>
+                <div className="signup-input-box">
+                  <span className="signup-input-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                      <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                  </span>
+                  <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    required
+                    placeholder="admin@company.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="signup-text-input"
+                    autoComplete="email"
+                  />
+                </div>
               </div>
             </div>
 
