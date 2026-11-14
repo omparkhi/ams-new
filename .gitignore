@@ -25,4 +25,7 @@ function_log.txt
 Thumbs.db
 
 .vercel
-temp_checkin_images/
+temp_checkin_images/*
+!temp_checkin_images/.gitkeep
+*.db-shm
+*.db-wal

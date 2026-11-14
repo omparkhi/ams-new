@@ -1,11 +1,6 @@
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from app.main.routes import main_bp
-from app.admin.routes import admin_bp
-from app.super_admin.routes import super_admin_bp
-from app.user.routes import user_bp
-from app.company.routes import company_bp
 from app.api import api_bp
 from app.utils.db_utils import init_db_schema
 
@@ -65,17 +60,20 @@ def create_app():
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Accept'
         return response
 
+    # Root health & service status endpoint
+    @app.route('/')
+    def root_status():
+        return jsonify({
+            'status': 'online',
+            'service': 'AMS Cloud SaaS API',
+            'version': '2.0.0',
+            'api_docs': '/api'
+        })
+
     # Ensure database schema is initialized with shift columns & tables
     init_db_schema()
 
-    # Register Legacy Server-Rendered Blueprints
-    app.register_blueprint(main_bp)
-    app.register_blueprint(admin_bp, url_prefix='/admin')
-    app.register_blueprint(super_admin_bp, url_prefix='/super_admin')
-    app.register_blueprint(user_bp, url_prefix='/user')
-    app.register_blueprint(company_bp, url_prefix='/company')
-
-    # Register Modern SaaS REST API Blueprint (registered at both /api and root / for resilience)
+    # Register Modern SaaS REST API Blueprint
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(api_bp, name='api_root_bp')
 

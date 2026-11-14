@@ -308,6 +308,14 @@ export default function UnifiedAdminPanel() {
   const roster = todayData?.roster || [];
   const fullDayCount = roster.filter(r => r.day_status === 'Full Day').length;
 
+  // Generate dynamic last 7 days for the chart
+  const last7DaysLabels = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).replace(' ', '');
+  });
+  const chartDateRange = `${last7DaysLabels[0]} - ${last7DaysLabels[6]}`;
+
   // Filter roster by search & filter
   const filteredRoster = roster.filter(r => {
     const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -398,10 +406,10 @@ export default function UnifiedAdminPanel() {
         <div className="sidebar-footer">
           <div className="tenant-badge">
             <div className="tenant-avatar">
-              {(user?.company_name || 'T')[0].toUpperCase()}
+              {(user?.company_name || 'O')[0].toUpperCase()}
             </div>
             <div className="tenant-info">
-              <div className="name">{user?.company_name || 'TARS Tech'}</div>
+              <div className="name">{user?.company_name || 'Organization Workspace'}</div>
               <div className="role">Company Admin</div>
             </div>
           </div>
@@ -444,7 +452,7 @@ export default function UnifiedAdminPanel() {
           </div>
 
           <div className="topbar-actions">
-            <a href="mailto:support@tarstechnologies.com" className="help-link">
+            <a href={`mailto:${companyInfo.email || 'support@amscloud.io'}`} className="help-link">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/>
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
@@ -542,7 +550,7 @@ export default function UnifiedAdminPanel() {
                   <div className="card-header-flex">
                     <div>
                       <h3 className="card-title">Avg. Work hours</h3>
-                      <p className="card-subtitle">8 Nov 2026 - 14 Nov 2026</p>
+                      <p className="card-subtitle">{chartDateRange}</p>
                     </div>
                     <span className="badge-pill">last 7Days</span>
                   </div>
@@ -605,18 +613,17 @@ export default function UnifiedAdminPanel() {
                       <line x1="320" y1="85" x2="320" y2="175" stroke="#5B50E5" strokeWidth="1.5" strokeDasharray="3 3" />
 
                       {/* X Axis Labels */}
-                      <text x="50" y="195" fill="#94A3B8" fontSize="11">8Nov</text>
-                      <text x="140" y="195" fill="#94A3B8" fontSize="11">9Nov</text>
-                      <text x="225" y="195" fill="#94A3B8" fontSize="11">10Nov</text>
-                      <text x="310" y="195" fill="#94A3B8" fontSize="11">11Nov</text>
-                      <text x="395" y="195" fill="#94A3B8" fontSize="11">12Nov</text>
-                      <text x="480" y="195" fill="#94A3B8" fontSize="11">13Nov</text>
-                      <text x="575" y="195" fill="#94A3B8" fontSize="11">14Nov</text>
+                      {last7DaysLabels.map((lbl, idx) => {
+                        const xCoords = [50, 140, 225, 310, 395, 480, 575];
+                        return (
+                          <text key={idx} x={xCoords[idx]} y="195" fill="#94A3B8" fontSize="11">{lbl}</text>
+                        );
+                      })}
                     </svg>
 
                     {/* Floating Tooltip Card */}
                     <div className="chart-tooltip-floating">
-                      <div className="date">10 Nov 2026</div>
+                      <div className="date">{last7DaysLabels[3] || 'Mid-Week'}</div>
                       <div className="val">7.30 hrs</div>
                       <div className="trend">↗ +15% vs Avg</div>
                     </div>
@@ -664,7 +671,7 @@ export default function UnifiedAdminPanel() {
 
                       <div className="donut-center-text">
                         <span className="label">Total</span>
-                        <span className="number">{totalStudents || 254}</span>
+                        <span className="number">{totalStudents}</span>
                       </div>
                     </div>
 
@@ -672,16 +679,16 @@ export default function UnifiedAdminPanel() {
                       <div className="legend-item">
                         <span className="dot-indicator" style={{ backgroundColor: '#5B50E5' }}></span>
                         <div>
-                          <div className="main">{presentStudents || 206} Present</div>
-                          <div className="sub">+{Math.max(1, Math.round((presentStudents || 20) * 0.1))} Intern</div>
+                          <div className="main">{presentStudents} Present</div>
+                          <div className="sub">+{Math.max(0, Math.round(presentStudents * 0.1))} Intern</div>
                         </div>
                       </div>
 
                       <div className="legend-item">
                         <span className="dot-indicator" style={{ backgroundColor: '#FFB800' }}></span>
                         <div>
-                          <div className="main">{absentStudents || 48} Absent</div>
-                          <div className="sub">+{Math.max(1, Math.round((absentStudents || 5) * 0.2))} Onboarding</div>
+                          <div className="main">{absentStudents} Absent</div>
+                          <div className="sub">+{Math.max(0, Math.round(absentStudents * 0.2))} Onboarding</div>
                         </div>
                       </div>
                     </div>

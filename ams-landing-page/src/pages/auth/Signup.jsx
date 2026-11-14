@@ -134,7 +134,7 @@ export default function Signup() {
                 type="text"
                 name="company_name"
                 required
-                placeholder="e.g. Acme Tech Solutions or SVPCET Engineering"
+                placeholder="e.g. Acme Corp or Global University"
                 value={formData.company_name}
                 onChange={handleChange}
                 className="modern-auth-input"
