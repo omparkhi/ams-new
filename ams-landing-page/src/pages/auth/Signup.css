@@ -1,73 +1,96 @@
 /* ==========================================================================
    Attendify Premium Signup Page Styles
-   Matching exact visual spec from landing page design & screenshot
+   Matching exact Hero section framing: White outer spacing -> Purple container -> Hero texture
    ========================================================================== */
 
-.attendify-signup-root {
+/* Outer Page Frame - Exact White Spacing like Landing Page Hero Section */
+.attendify-signup-page {
   min-height: 100vh;
   width: 100%;
-  background: linear-gradient(145deg, #745FF2 0%, #8572F6 35%, #9B8CFA 70%, #B7ACFC 100%);
+  background-color: #FFFFFF;
+  padding: 15px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (max-width: 768px) {
+  .attendify-signup-page {
+    padding: 8px;
+  }
+}
+
+/* Purple Hero Box Container */
+.signup-hero-container {
+  flex: 1;
+  min-height: calc(100vh - 30px);
+  width: 100%;
+  background-color: #7167E8;
+  background-image: linear-gradient(180deg, #7167E8 0%, #7E75ED 35%, #8D85EF 70%, #9C95F2 100%);
+  border-radius: 20px;
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 20px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding: 48px 20px 40px 20px;
   box-sizing: border-box;
 }
 
-/* Ambient glow & waves */
-.signup-ambient-glow-left {
+@media (max-width: 640px) {
+  .signup-hero-container {
+    border-radius: 14px;
+    padding: 32px 14px 28px 14px;
+    min-height: calc(100vh - 16px);
+  }
+}
+
+/* Exact Hero Background Shapes & Textures (from Landing Page Hero Section) */
+.signup-hero-texture {
   position: absolute;
-  bottom: -160px;
-  left: -160px;
-  width: 520px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 20px;
+}
+
+.signup-hero-top-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   height: 520px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+  background-image: linear-gradient(#7167E8 0%, rgba(131, 122, 235, 0.8) 16%, rgba(143, 135, 237, 0.45) 42%, transparent 100%);
   pointer-events: none;
+  z-index: 2;
+  border-radius: 20px 20px 0 0;
 }
 
-.signup-ambient-glow-right {
+.signup-hero-bottom-wave {
   position: absolute;
-  bottom: -120px;
-  right: -120px;
-  width: 480px;
-  height: 480px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 140px;
+  object-fit: cover;
   pointer-events: none;
+  z-index: 2;
+  opacity: 0.65;
 }
 
-/* Subtle dot matrix patterns */
-.signup-dots-pattern {
-  position: absolute;
-  top: 12%;
-  width: 220px;
-  height: 420px;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.22) 1.5px, transparent 1.5px);
-  background-size: 18px 18px;
-  pointer-events: none;
-}
-
-.signup-dots-left {
-  left: 3%;
-  mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 75%);
-  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 75%);
-}
-
-.signup-dots-right {
-  right: 3%;
-  mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 75%);
-  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 75%);
-}
-
-/* Header Area */
+/* Foreground Header */
 .signup-header {
   text-align: center;
-  margin-bottom: 26px;
+  margin-bottom: 24px;
+  position: relative;
   z-index: 10;
 }
 
@@ -101,15 +124,15 @@
 }
 
 .signup-main-subtitle {
-  color: rgba(255, 255, 255, 0.90);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 15px;
   font-weight: 400;
   line-height: 1.55;
-  max-width: 480px;
+  max-width: 490px;
   margin: 0 auto;
 }
 
-/* White Card Container */
+/* White Form Card Container */
 .signup-card-container {
   background: #FFFFFF;
   width: 100%;
@@ -117,24 +140,21 @@
   border-radius: 28px;
   padding: 38px 40px 32px 40px;
   box-shadow: 0 25px 60px -12px rgba(45, 25, 125, 0.28), 0 4px 18px rgba(0, 0, 0, 0.04);
+  position: relative;
   z-index: 10;
   box-sizing: border-box;
-  position: relative;
 }
 
 @media (max-width: 640px) {
-  .attendify-signup-root {
-    padding: 32px 16px;
-  }
   .signup-card-container {
-    padding: 26px 20px 24px 20px;
-    border-radius: 22px;
+    padding: 24px 18px 22px 18px;
+    border-radius: 20px;
   }
   .signup-main-title {
-    font-size: 28px;
+    font-size: 27px;
   }
   .signup-main-subtitle {
-    font-size: 14px;
+    font-size: 13.5px;
   }
 }
 
@@ -439,6 +459,7 @@
   justify-content: center;
   gap: 16px;
   flex-wrap: wrap;
+  position: relative;
   z-index: 10;
 }
 
