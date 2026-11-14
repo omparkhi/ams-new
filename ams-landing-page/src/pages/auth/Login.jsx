@@ -48,18 +48,23 @@ export default function Login() {
       <div className="modern-auth-card login-card">
         {/* Brand Icon & Heading */}
         <div className="modern-auth-header">
-          <div className="modern-auth-icon-wrap">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M7 3H5a2 2 0 0 0-2 2v2"></path>
-              <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
-              <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
-              <path d="M3 17v2a2 2 0 0 0 2 2h2"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M12 9v1"></path>
-              <path d="M12 14v1"></path>
-            </svg>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+            padding: '10px 22px',
+            borderRadius: '14px',
+            boxShadow: '0 8px 24px rgba(15, 23, 42, 0.15)',
+            marginBottom: '16px'
+          }}>
+            <img
+              src="/attendify-logo.png"
+              alt="Attendify"
+              style={{ height: '32px', width: 'auto', display: 'block', objectFit: 'contain' }}
+            />
           </div>
-          <h1 className="modern-auth-title">Welcome to AMS</h1>
+          <h1 className="modern-auth-title">Welcome to Attendify</h1>
           <p className="modern-auth-subtitle">
             Sign in to your organization attendance portal
           </p>

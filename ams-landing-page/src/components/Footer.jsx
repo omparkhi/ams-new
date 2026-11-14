@@ -42,10 +42,25 @@ export default function Footer() {
               <div className="footer-content-wrap">
                 <div className="content-navitems">
                   <div className="footer-content-left">
-                    <Link to="/" aria-current="page" className="w-inline-block w--current" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-                      <span style={{ fontWeight: 900, fontSize: '24px', letterSpacing: '-0.8px', color: '#0f172a' }}>
-                        AMS
-                      </span>
+                    <Link
+                      to="/"
+                      aria-current="page"
+                      className="w-inline-block w--current"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        textDecoration: 'none',
+                        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+                        padding: '8px 16px',
+                        borderRadius: '10px',
+                        width: 'fit-content'
+                      }}
+                    >
+                      <img
+                        src="/attendify-logo.png"
+                        alt="Attendify"
+                        style={{ height: '30px', width: 'auto', display: 'block', objectFit: 'contain' }}
+                      />
                     </Link>
                     <p className="body-14">
                       Fast, contactless face attendance for colleges, departments, and growing teams.
@@ -107,7 +122,7 @@ export default function Footer() {
               </div>
 
               <div className="footer-bottom-content">
-                <p className="bottom-text">© 2026 AMS Platform. All rights reserved.</p>
+                <p className="bottom-text">© 2026 Attendify Platform. All rights reserved.</p>
                 <div className="bottom-navtext">
                   <Link to="/privacy-policy" className="navtext">Privacy Policy</Link>
                   <Link to="/terms-conditions" className="navtext">Terms of Service</Link>

@@ -81,13 +81,23 @@ export default function Signup() {
       <div className="modern-auth-card signup-card">
         {/* Brand Icon & Heading */}
         <div className="modern-auth-header">
-          <div className="modern-auth-icon-wrap">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-            </svg>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+            padding: '10px 22px',
+            borderRadius: '14px',
+            boxShadow: '0 8px 24px rgba(15, 23, 42, 0.15)',
+            marginBottom: '16px'
+          }}>
+            <img
+              src="/attendify-logo.png"
+              alt="Attendify"
+              style={{ height: '32px', width: 'auto', display: 'block', objectFit: 'contain' }}
+            />
           </div>
-          <h1 className="modern-auth-title">Create Organization Workspace</h1>
+          <h1 className="modern-auth-title">Create Attendify Workspace</h1>
           <p className="modern-auth-subtitle">
             Automated self-service setup for your company, college, or team
           </p>

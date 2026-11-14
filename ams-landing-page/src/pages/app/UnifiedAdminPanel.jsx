@@ -330,13 +330,28 @@ export default function UnifiedAdminPanel() {
           ========================================================================== */}
       <aside className={`modern-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
         <div className="sidebar-brand-row">
-          <a href="#/app" className="sidebar-brand" onClick={() => setMobileMenuOpen(false)}>
-            <div className="brand-icon-box">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-            </div>
-            <span className="brand-name">AMS Cloud</span>
+          <a
+            href="#/app"
+            className="sidebar-brand"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+              padding: '8px 16px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.12)',
+              marginBottom: '16px',
+              width: '100%',
+              justifyContent: 'center'
+            }}
+          >
+            <img
+              src="/attendify-logo.png"
+              alt="Attendify"
+              style={{ height: '28px', width: 'auto', display: 'block', objectFit: 'contain' }}
+            />
           </a>
           <button
             className="sidebar-close-btn"
