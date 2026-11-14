@@ -65,18 +65,11 @@ export default function Signup() {
   return (
     <div className="attendify-signup-page">
       <div className="signup-hero-container">
-        {/* Exact Hero Background Shapes & Textures from Landing Page */}
+        {/* Exact Hero Texture - Smoothly masked so it blends seamlessly */}
         <img
           src="/images/693f7a801b0f40ebff9c2e56_Mask%20group%20%284%29.png"
           alt=""
           className="signup-hero-texture"
-          loading="lazy"
-        />
-        <div className="signup-hero-top-gradient" />
-        <img
-          src="/images/693f6993aff3e20a61a64fc3_Background%20Container.avif"
-          alt=""
-          className="signup-hero-bottom-wave"
           loading="lazy"
         />
 
