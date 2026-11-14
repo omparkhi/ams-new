@@ -6,7 +6,7 @@ Operates directly on the normalized `AttendanceRecords` table.
 import os
 import sqlite3
 import logging
-from datetime import datetime, timedelta, time, date
+from datetime import datetime, timedelta, time, date, timezone
 from calendar import monthrange
 from functools import lru_cache
 from app.utils.db_utils import get_db_connection
@@ -18,6 +18,13 @@ DB_PATH = os.environ.get('DB_PATH') or os.path.join(BASE_DIR, "sqlite_exports", 
 
 INDIA_OFFSET = timedelta(hours=5, minutes=30)
 india_offset = INDIA_OFFSET  # backwards compatibility
+
+def get_ist_now():
+    """
+    Returns timezone-aware India Standard Time (UTC+5:30)
+    regardless of server's local OS timezone (fixes double-offset issue).
+    """
+    return datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
 
 if os.environ.get('VERCEL') == '1' or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
     TEMP_CHECKIN_IMAGES_DIR = "/tmp/temp_checkin_images"
@@ -185,29 +192,55 @@ def update_attendance_in_db(company_id, attendance):
 def log_attendance(company_id, name, action):
     """
     Logs attendance check-in or check-out for an employee in the normalized AttendanceRecords.
+    Uses true India Standard Time (UTC+5:30) and organization shift settings.
     """
-    now = datetime.now() + INDIA_OFFSET
+    now = get_ist_now()
     date_str = now.strftime('%d/%m/%Y')
     time_str = now.strftime('%H:%M:%S')
+
+    # Fetch company shift settings (default to 09:00:00 / 18:00:00 if not set)
+    checkin_target = '09:00:00'
+    checkout_target = '18:00:00'
+    req_hours = 8.0
+    try:
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT "Check In Time", "Check Out Time", "Required Hours" FROM Companies WHERE "Company ID" = ?', (company_id,))
+            c_row = cursor.fetchone()
+            if c_row:
+                checkin_target = c_row['Check In Time'] or '09:00:00'
+                checkout_target = c_row['Check Out Time'] or '18:00:00'
+                try:
+                    req_hours = float(c_row['Required Hours'] or 8.0)
+                except ValueError:
+                    req_hours = 8.0
+            conn.close()
+    except Exception as e:
+        logger.warning(f"Could not load shift settings for {company_id}: {e}")
 
     attendance = read_attendance_from_db(company_id)
     today_records = [r for r in attendance if r[0] == name and r[1] == date_str]
 
-    def determine_checkout_and_status(checkin_dt):
-        time_10 = datetime.combine(date.today(), time(8)) + INDIA_OFFSET
-        time_10_30 = datetime.combine(date.today(), time(10, 30)) + INDIA_OFFSET
-        time_11 = datetime.combine(date.today(), time(11)) + INDIA_OFFSET
+    def determine_checkout_and_status(checkin_time_str):
+        try:
+            target_dt = datetime.strptime(checkin_target, '%H:%M:%S').time()
+            actual_dt = datetime.strptime(checkin_time_str, '%H:%M:%S').time()
 
-        if time_10 <= checkin_dt < time_10_30:
-            return '18:30:00', 'Full Day'
-        elif time_10_30 <= checkin_dt <= time_11:
-            return (checkin_dt + timedelta(hours=5)).strftime('%H:%M:%S'), 'Full Day'
-        return '18:30:00', 'Half Day'
+            # Up to 60 minutes after shift start is considered Full Day, otherwise Half Day
+            shift_start_combined = datetime.combine(now.date(), target_dt)
+            grace_limit = (shift_start_combined + timedelta(minutes=60)).time()
+
+            if actual_dt <= grace_limit:
+                return checkout_target, 'Full Day'
+            else:
+                return checkout_target, 'Half Day'
+        except Exception:
+            return checkout_target, 'Full Day'
 
     if not today_records:
         if action == 'checkin':
-            checkin_dt = datetime.combine(datetime.today(), datetime.strptime(time_str, '%H:%M:%S').time()) + INDIA_OFFSET
-            expected_checkout, day_status = determine_checkout_and_status(checkin_dt)
+            expected_checkout, day_status = determine_checkout_and_status(time_str)
             attendance.append([name, date_str, time_str, '', 'Present', expected_checkout, '', day_status])
             update_attendance_in_db(company_id, attendance)
             return True, expected_checkout, day_status
@@ -220,8 +253,7 @@ def log_attendance(company_id, name, action):
             return True, last[6], last[7]
         elif action == 'checkin' and not last[2]:
             last[2] = time_str
-            checkin_dt = datetime.combine(datetime.today(), datetime.strptime(time_str, '%H:%M:%S').time()) + INDIA_OFFSET
-            last[5], last[7] = determine_checkout_and_status(checkin_dt)
+            last[5], last[7] = determine_checkout_and_status(time_str)
             update_attendance_in_db(company_id, attendance)
             return True, last[5], last[7]
 

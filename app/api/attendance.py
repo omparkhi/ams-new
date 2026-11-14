@@ -12,12 +12,12 @@ from app.utils.attendance_utils import (
     update_attendance_in_db,
     calculate_hours,
     calculate_working_days,
+    get_ist_now,
+    log_attendance,
     TEMP_CHECKIN_IMAGES_DIR
 )
 from .auth import token_required
 from . import api_bp
-
-INDIA_OFFSET = timedelta(hours=5, minutes=30)
 
 
 @api_bp.route('/attendance/today', methods=['GET'])
@@ -27,7 +27,7 @@ def get_today_attendance(current_user):
     Returns today's live roster and aggregate stats for the company dashboard.
     """
     company_id = current_user.get('company_id')
-    now = datetime.now() + INDIA_OFFSET
+    now = get_ist_now()
     today = now.strftime('%d/%m/%Y')
 
     conn = get_db_connection()
@@ -109,7 +109,7 @@ def force_checkout(current_user):
     if not name:
         return jsonify({'error': 'Student name is required.'}), 400
 
-    now = datetime.now() + INDIA_OFFSET
+    now = get_ist_now()
     today = now.strftime('%d/%m/%Y')
     time_str = now.strftime('%H:%M:%S')
 
@@ -162,7 +162,7 @@ def force_checkin(current_user):
     if not name:
         return jsonify({'error': 'Student name is required.'}), 400
 
-    now = datetime.now() + INDIA_OFFSET
+    now = get_ist_now()
     today = now.strftime('%d/%m/%Y')
     attendance = read_attendance_from_db(company_id)
     today_records = [r for r in attendance if r[0] == name and r[1] == today]
@@ -238,7 +238,7 @@ def export_attendance_excel(current_user):
     company_id = current_user.get('company_id')
     company_name = current_user.get('company_name', company_id)
 
-    now = datetime.now() + INDIA_OFFSET
+    now = get_ist_now()
     year = int(request.args.get('year', now.year))
     month = int(request.args.get('month', now.month))
 

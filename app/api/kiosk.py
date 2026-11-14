@@ -17,13 +17,13 @@ from app.utils.attendance_utils import (
     read_attendance_from_db,
     log_attendance,
     calculate_hours,
+    get_ist_now,
     TEMP_CHECKIN_IMAGES_DIR
 )
 from .auth import token_required
 from . import api_bp
 
 logger = logging.getLogger(__name__)
-INDIA_OFFSET = timedelta(hours=5, minutes=30)
 
 
 @api_bp.route('/kiosk/scan', methods=['POST'])
@@ -125,7 +125,7 @@ def kiosk_scan(current_user):
             }), 200
 
         # 4. Process Attendance Check-In / Check-Out
-        now = datetime.now() + INDIA_OFFSET
+        now = get_ist_now()
         today = now.strftime('%d/%m/%Y')
         time_str = now.strftime('%H:%M:%S')
 
@@ -171,7 +171,7 @@ def kiosk_scan(current_user):
         if checkin_str and not checkout_str:
             try:
                 checkin_dt = datetime.strptime(checkin_str, '%H:%M:%S').time()
-                checkin_full = datetime.combine(date.today(), checkin_dt) + INDIA_OFFSET
+                checkin_full = datetime.combine(now.date(), checkin_dt)
                 time_worked = now - checkin_full
 
                 # Enforce 6-hour minimum checkout rule

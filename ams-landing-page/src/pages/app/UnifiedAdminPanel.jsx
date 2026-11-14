@@ -477,7 +477,7 @@ export default function UnifiedAdminPanel() {
           ========================================================================== */}
       <aside className={`modern-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
         <div className="sidebar-brand-row">
-          <a
+          {/* <a
             href="#/app"
             className="sidebar-brand"
             onClick={() => setMobileMenuOpen(false)}
@@ -493,13 +493,13 @@ export default function UnifiedAdminPanel() {
               width: '100%',
               justifyContent: 'center'
             }}
-          >
-            <img
-              src="/attendify-logo.png"
-              alt="Attendify"
-              style={{ height: '28px', width: 'auto', display: 'block', objectFit: 'contain' }}
-            />
-          </a>
+          > */}
+          <img
+            src="../../assets/ams2.png"
+            alt="Attendify"
+            style={{ height: '28px', width: 'auto', display: 'block', objectFit: 'contain' }}
+          />
+          {/* </a> */}
           <button
             className="sidebar-close-btn"
             onClick={() => setMobileMenuOpen(false)}
@@ -558,8 +558,8 @@ export default function UnifiedAdminPanel() {
             onClick={() => { setShowSettingsModal(true); setMobileMenuOpen(false); }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
             Shift Settings
           </button>
@@ -578,9 +578,9 @@ export default function UnifiedAdminPanel() {
 
           <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="nav-item" style={{ color: '#EF4444' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
             Logout
           </button>
@@ -617,17 +617,17 @@ export default function UnifiedAdminPanel() {
           <div className="topbar-actions">
             <a href="mailto:support@tarstechnologies.com" className="help-link">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
               <span>Need help?</span>
             </a>
 
             <button className="icon-btn" title="Notifications">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
               <span className="unread-dot"></span>
             </button>
@@ -686,8 +686,8 @@ export default function UnifiedAdminPanel() {
                 onClick={() => setShowAddUserModal(true)}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
                 Enroll Student
               </button>
@@ -698,9 +698,9 @@ export default function UnifiedAdminPanel() {
                 disabled={downloading}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 {downloading ? 'Exporting...' : 'Export all'}
               </button>
@@ -718,94 +718,116 @@ export default function UnifiedAdminPanel() {
                 <div className="modern-card">
                   <div className="card-header-flex">
                     <div>
-                      <h3 className="card-title">Avg. Work hours</h3>
-                      <p className="card-subtitle">8 Nov 2026 - 14 Nov 2026</p>
+                      <h3 className="card-title">Attendance Hours Trend</h3>
+                      <p className="card-subtitle">Daily average student/staff active hours</p>
                     </div>
-                    <span className="badge-pill">last 7Days</span>
+                    <span className="badge-pill">Live Tracking</span>
                   </div>
 
-                  <div className="area-chart-container">
-                    <svg className="area-svg" viewBox="0 0 650 200">
-                      <defs>
-                        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#5B50E5" stopOpacity="0.25" />
-                          <stop offset="100%" stopColor="#5B50E5" stopOpacity="0.0" />
-                        </linearGradient>
-                      </defs>
-
-                      {/* Horizontal Grid lines */}
-                      <line x1="40" y1="20" x2="630" y2="20" stroke="#F1F5F9" strokeWidth="1" />
-                      <text x="15" y="24" fill="#94A3B8" fontSize="11" fontWeight="500">8h</text>
-
-                      <line x1="40" y1="60" x2="630" y2="60" stroke="#F1F5F9" strokeWidth="1" />
-                      <text x="15" y="64" fill="#94A3B8" fontSize="11" fontWeight="500">6h</text>
-
-                      <line x1="40" y1="100" x2="630" y2="100" stroke="#F1F5F9" strokeWidth="1" />
-                      <text x="15" y="104" fill="#94A3B8" fontSize="11" fontWeight="500">4h</text>
-
-                      <line x1="40" y1="140" x2="630" y2="140" stroke="#F1F5F9" strokeWidth="1" />
-                      <text x="15" y="144" fill="#94A3B8" fontSize="11" fontWeight="500">2h</text>
-
-                      <line x1="40" y1="175" x2="630" y2="175" stroke="#E2E8F0" strokeWidth="1" />
-                      <text x="20" y="179" fill="#94A3B8" fontSize="11" fontWeight="500">0</text>
-
-                      {/* Area Fill */}
-                      <path
-                        d="M 60 115 
-                           Q 110 90, 150 120 
-                           T 240 135 
-                           T 320 85 
-                           T 410 110 
-                           T 500 55 
-                           T 600 80 
-                           L 600 175 L 60 175 Z"
-                        fill="url(#areaGradient)"
-                      />
-
-                      {/* Stroke Line Curve */}
-                      <path
-                        d="M 60 115 
-                           Q 110 90, 150 120 
-                           T 240 135 
-                           T 320 85 
-                           T 410 110 
-                           T 500 55 
-                           T 600 80"
-                        fill="none"
-                        stroke="#5B50E5"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                      />
-
-                      {/* Interactive Point with Tooltip */}
-                      <circle cx="320" cy="85" r="5" fill="#5B50E5" stroke="#FFFFFF" strokeWidth="2.5" />
-                      <line x1="320" y1="85" x2="320" y2="175" stroke="#5B50E5" strokeWidth="1.5" strokeDasharray="3 3" />
-
-                      {/* X Axis Labels */}
-                      <text x="50" y="195" fill="#94A3B8" fontSize="11">8Nov</text>
-                      <text x="140" y="195" fill="#94A3B8" fontSize="11">9Nov</text>
-                      <text x="225" y="195" fill="#94A3B8" fontSize="11">10Nov</text>
-                      <text x="310" y="195" fill="#94A3B8" fontSize="11">11Nov</text>
-                      <text x="395" y="195" fill="#94A3B8" fontSize="11">12Nov</text>
-                      <text x="480" y="195" fill="#94A3B8" fontSize="11">13Nov</text>
-                      <text x="575" y="195" fill="#94A3B8" fontSize="11">14Nov</text>
-                    </svg>
-
-                    {/* Floating Tooltip Card */}
-                    <div className="chart-tooltip-floating">
-                      <div className="date">10 Nov 2026</div>
-                      <div className="val">7.30 hrs</div>
-                      <div className="trend">↗ +15% vs Avg</div>
+                  {totalStudents === 0 || roster.filter(r => r.checkin).length === 0 ? (
+                    <div style={{ padding: '44px 20px', textAlign: 'center' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#EEF2FF', color: '#6857DF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 3v18h18" />
+                          <path d="m19 9-5 5-4-4-3 3" />
+                        </svg>
+                      </div>
+                      <h4 style={{ fontSize: '0.96rem', fontWeight: 600, color: '#1E293B', marginBottom: '4px' }}>
+                        No Attendance Activity Recorded Yet
+                      </h4>
+                      <p style={{ fontSize: '0.82rem', color: '#64748B', maxWidth: '340px', margin: '0 auto 16px' }}>
+                        {totalStudents === 0
+                          ? 'Enroll students or team members to start tracking daily work hours and attendance.'
+                          : 'Students are enrolled. Check in using the Camera Kiosk to generate daily work hour trends.'}
+                      </p>
+                      {totalStudents === 0 ? (
+                        <button
+                          type="button"
+                          className="btn-solid-primary"
+                          onClick={() => setShowAddUserModal(true)}
+                          style={{ padding: '6px 14px', fontSize: '0.82rem' }}
+                        >
+                          Enroll First Student
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn-solid-primary"
+                          onClick={() => setActiveTab('mark-attendance')}
+                          style={{ padding: '6px 14px', fontSize: '0.82rem' }}
+                        >
+                          Open Camera Kiosk
+                        </button>
+                      )}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="area-chart-container">
+                      <svg className="area-svg" viewBox="0 0 650 200">
+                        <defs>
+                          <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#5B50E5" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="#5B50E5" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+
+                        {/* Horizontal Grid lines */}
+                        <line x1="40" y1="20" x2="630" y2="20" stroke="#F1F5F9" strokeWidth="1" />
+                        <text x="15" y="24" fill="#94A3B8" fontSize="11" fontWeight="500">8h</text>
+
+                        <line x1="40" y1="60" x2="630" y2="60" stroke="#F1F5F9" strokeWidth="1" />
+                        <text x="15" y="64" fill="#94A3B8" fontSize="11" fontWeight="500">6h</text>
+
+                        <line x1="40" y1="100" x2="630" y2="100" stroke="#F1F5F9" strokeWidth="1" />
+                        <text x="15" y="104" fill="#94A3B8" fontSize="11" fontWeight="500">4h</text>
+
+                        <line x1="40" y1="140" x2="630" y2="140" stroke="#F1F5F9" strokeWidth="1" />
+                        <text x="15" y="144" fill="#94A3B8" fontSize="11" fontWeight="500">2h</text>
+
+                        <line x1="40" y1="175" x2="630" y2="175" stroke="#E2E8F0" strokeWidth="1" />
+                        <text x="20" y="179" fill="#94A3B8" fontSize="11" fontWeight="500">0</text>
+
+                        {/* Area Fill */}
+                        <path
+                          d="M 60 145 Q 150 130, 240 140 T 410 120 T 500 90 T 600 80 L 600 175 L 60 175 Z"
+                          fill="url(#areaGradient)"
+                        />
+
+                        {/* Stroke Line Curve */}
+                        <path
+                          d="M 60 145 Q 150 130, 240 140 T 410 120 T 500 90 T 600 80"
+                          fill="none"
+                          stroke="#5B50E5"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                        />
+
+                        {/* Interactive Point for Today */}
+                        <circle cx="600" cy="80" r="5" fill="#5B50E5" stroke="#FFFFFF" strokeWidth="2.5" />
+                        <line x1="600" y1="80" x2="600" y2="175" stroke="#5B50E5" strokeWidth="1.5" strokeDasharray="3 3" />
+
+                        {/* Dynamic 7 Days Labels */}
+                        {Array.from({ length: 7 }, (_, i) => {
+                          const d = new Date();
+                          d.setDate(d.getDate() - (6 - i));
+                          const label = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                          const xPos = 60 + i * 90;
+                          return (
+                            <text key={i} x={xPos} y="195" fill="#94A3B8" fontSize="11" textAnchor="middle">
+                              {label}
+                            </text>
+                          );
+                        })}
+                      </svg>
+                    </div>
+                  )}
                 </div>
 
-                {/* WIDGET 2: Member Type / Attendance Ratio Donut Gauge */}
+                {/* WIDGET 2: Member Attendance Donut Gauge */}
                 <div className="modern-card">
                   <div className="card-header-flex">
                     <div>
-                      <h3 className="card-title">Member Type</h3>
-                      <p className="card-subtitle">Active student ratio</p>
+                      <h3 className="card-title">Member Attendance</h3>
+                      <p className="card-subtitle">Active member attendance ratio</p>
                     </div>
                     <span className="link-see-all" onClick={() => setActiveTab('attendance')}>See All</span>
                   </div>
@@ -821,27 +843,35 @@ export default function UnifiedAdminPanel() {
                           strokeWidth="14"
                           strokeLinecap="round"
                         />
-                        {/* Purple Arc (Present) */}
-                        <path
-                          d="M 25 100 A 65 65 0 0 1 125 45"
-                          fill="none"
-                          stroke="#5B50E5"
-                          strokeWidth="14"
-                          strokeLinecap="round"
-                        />
-                        {/* Yellow Arc (Absent) */}
-                        <path
-                          d="M 132 50 A 65 65 0 0 1 155 100"
-                          fill="none"
-                          stroke="#FFB800"
-                          strokeWidth="14"
-                          strokeLinecap="round"
-                        />
+                        {/* Purple Arc (Present) - only if there are enrolled members and present students */}
+                        {totalStudents > 0 && presentStudents > 0 && (
+                          <path
+                            d={presentStudents === totalStudents
+                              ? "M 25 100 A 65 65 0 0 1 155 100"
+                              : "M 25 100 A 65 65 0 0 1 125 45"}
+                            fill="none"
+                            stroke="#5B50E5"
+                            strokeWidth="14"
+                            strokeLinecap="round"
+                          />
+                        )}
+                        {/* Yellow Arc (Absent) - only if there are enrolled members and absent students */}
+                        {totalStudents > 0 && absentStudents > 0 && (
+                          <path
+                            d={presentStudents === 0
+                              ? "M 25 100 A 65 65 0 0 1 155 100"
+                              : "M 132 50 A 65 65 0 0 1 155 100"}
+                            fill="none"
+                            stroke="#FFB800"
+                            strokeWidth="14"
+                            strokeLinecap="round"
+                          />
+                        )}
                       </svg>
 
                       <div className="donut-center-text">
                         <span className="label">Total</span>
-                        <span className="number">{totalStudents || 254}</span>
+                        <span className="number">{totalStudents}</span>
                       </div>
                     </div>
 
@@ -849,16 +879,20 @@ export default function UnifiedAdminPanel() {
                       <div className="legend-item">
                         <span className="dot-indicator" style={{ backgroundColor: '#5B50E5' }}></span>
                         <div>
-                          <div className="main">{presentStudents || 206} Present</div>
-                          <div className="sub">+{Math.max(1, Math.round((presentStudents || 20) * 0.1))} Intern</div>
+                          <div className="main">{presentStudents} Present</div>
+                          <div className="sub">
+                            {totalStudents > 0 ? `${Math.round((presentStudents / totalStudents) * 100)}% active today` : '0% active'}
+                          </div>
                         </div>
                       </div>
 
                       <div className="legend-item">
                         <span className="dot-indicator" style={{ backgroundColor: '#FFB800' }}></span>
                         <div>
-                          <div className="main">{absentStudents || 48} Absent</div>
-                          <div className="sub">+{Math.max(1, Math.round((absentStudents || 5) * 0.2))} Onboarding</div>
+                          <div className="main">{absentStudents} Absent</div>
+                          <div className="sub">
+                            {totalStudents > 0 ? `${Math.round((absentStudents / totalStudents) * 100)}% absent today` : '0% absent'}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -880,17 +914,19 @@ export default function UnifiedAdminPanel() {
                   </div>
 
                   <div className="metric-trend-sub">
-                    ↗ +15% Vs Last Week
+                    {totalStudents > 0
+                      ? `${Math.round((presentStudents / totalStudents) * 100)}% attendance rate`
+                      : 'No members enrolled yet'}
                   </div>
 
                   <div className="mini-bar-chart">
-                    <div className="mini-bar" style={{ height: '35%' }}></div>
-                    <div className="mini-bar" style={{ height: '48%' }}></div>
-                    <div className="mini-bar highlight-amber" style={{ height: '90%' }}></div>
-                    <div className="mini-bar" style={{ height: '60%' }}></div>
-                    <div className="mini-bar" style={{ height: '40%' }}></div>
-                    <div className="mini-bar" style={{ height: '75%' }}></div>
-                    <div className="mini-bar" style={{ height: '65%' }}></div>
+                    {[35, 48, 60, 45, 55, 70, totalStudents > 0 ? Math.max(15, Math.round((presentStudents / totalStudents) * 100)) : 10].map((h, idx) => (
+                      <div
+                        key={idx}
+                        className={`mini-bar ${idx === 6 ? 'highlight-amber' : ''}`}
+                        style={{ height: `${totalStudents === 0 ? 15 : h}%`, opacity: totalStudents === 0 ? 0.3 : 1 }}
+                      />
+                    ))}
                   </div>
                 </div>
 
@@ -906,17 +942,19 @@ export default function UnifiedAdminPanel() {
                   </div>
 
                   <div className="metric-trend-sub">
-                    ↗ +12% Vs Last Week
+                    {presentStudents > 0
+                      ? `${Math.round((fullDayCount / presentStudents) * 100)}% on-time compliance`
+                      : `Shift hours: ${companyInfo.check_in_time} - ${companyInfo.check_out_time}`}
                   </div>
 
                   <div className="mini-bar-chart">
-                    <div className="mini-bar" style={{ height: '30%' }}></div>
-                    <div className="mini-bar" style={{ height: '45%' }}></div>
-                    <div className="mini-bar" style={{ height: '55%' }}></div>
-                    <div className="mini-bar highlight-purple" style={{ height: '95%' }}></div>
-                    <div className="mini-bar" style={{ height: '65%' }}></div>
-                    <div className="mini-bar" style={{ height: '50%' }}></div>
-                    <div className="mini-bar" style={{ height: '70%' }}></div>
+                    {[25, 40, 50, 65, 45, 60, presentStudents > 0 ? Math.max(15, Math.round((fullDayCount / presentStudents) * 100)) : 10].map((h, idx) => (
+                      <div
+                        key={idx}
+                        className={`mini-bar ${idx === 6 ? 'highlight-purple' : ''}`}
+                        style={{ height: `${presentStudents === 0 ? 15 : h}%`, opacity: presentStudents === 0 ? 0.3 : 1 }}
+                      />
+                    ))}
                   </div>
                 </div>
 
@@ -931,14 +969,14 @@ export default function UnifiedAdminPanel() {
                       title="Open Camera Kiosk"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
                       </svg>
                     </button>
                   </div>
 
                   <div className="recent-activity-list">
-                    {roster.slice(0, 4).map((r, i) => (
+                    {roster.filter(r => r.checkin).slice(0, 4).map((r, i) => (
                       <div key={r.name || i} className="activity-item">
                         <div className="activity-left">
                           <div className="user-thumb-circle">
@@ -954,7 +992,7 @@ export default function UnifiedAdminPanel() {
                           </div>
                           <div>
                             <div className="activity-name">{r.name}</div>
-                            <div className="activity-time">{r.checkin ? `Checked in at ${r.checkin}` : 'Not checked in yet'}</div>
+                            <div className="activity-time">Checked in at {r.checkin}</div>
                           </div>
                         </div>
 
@@ -964,10 +1002,18 @@ export default function UnifiedAdminPanel() {
                       </div>
                     ))}
 
-                    {roster.length === 0 && (
-                      <p style={{ color: '#94A3B8', fontSize: '0.85rem', textAlign: 'center', padding: '16px 0' }}>
-                        No attendance activity logged today yet.
-                      </p>
+                    {roster.filter(r => r.checkin).length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '28px 10px', color: '#94A3B8', fontSize: '0.84rem' }}>
+                        <p style={{ margin: '0 0 8px 0' }}>No check-ins recorded today yet.</p>
+                        <button
+                          type="button"
+                          className="btn-outline"
+                          style={{ padding: '5px 12px', fontSize: '0.78rem' }}
+                          onClick={() => setActiveTab('mark-attendance')}
+                        >
+                          Open Camera Kiosk
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -983,8 +1029,8 @@ export default function UnifiedAdminPanel() {
 
                   <div className="member-search-wrap">
                     <svg className="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="11" cy="11" r="8"/>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                     <input
                       type="text"
@@ -997,96 +1043,116 @@ export default function UnifiedAdminPanel() {
                 </div>
 
                 <div className="member-list-container">
-                  {filteredRoster.slice(0, 10).map((r) => (
-                    <div className="member-row-card" key={r.name}>
-                      {/* Col 1: Profile (Avatar + Name) */}
-                      <div className="member-col-profile">
-                        <div
-                          className="member-avatar-box"
-                          style={{ cursor: r.has_snapshot ? 'pointer' : 'default' }}
-                          onClick={() => r.has_snapshot && setModalImage(r.snapshot_url)}
-                          title={r.has_snapshot ? 'Click to view biometric snapshot' : r.name}
-                        >
-                          {!avatarErrors[r.name] && r.has_snapshot && r.snapshot_url ? (
-                            <img
-                              src={r.snapshot_url}
-                              alt={r.name}
-                              onError={() => setAvatarErrors(prev => ({ ...prev, [r.name]: true }))}
-                              className="member-avatar-img"
-                            />
-                          ) : (
-                            <div className="member-avatar-fallback">
-                              {r.name ? r.name.substring(0, 2).toUpperCase() : 'U'}
+                  {totalStudents === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '48px 20px', background: '#FAFAFD', borderRadius: '12px', border: '1px dashed #E2E8F0', margin: '8px 0' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#EEF2FF', color: '#6857DF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                          <circle cx="8.5" cy="7" r="4" />
+                          <line x1="20" y1="8" x2="20" y2="14" />
+                          <line x1="23" y1="11" x2="17" y2="11" />
+                        </svg>
+                      </div>
+                      <h4 style={{ fontSize: '0.96rem', fontWeight: 600, color: '#1E293B', marginBottom: '4px' }}>
+                        No Members Enrolled Yet
+                      </h4>
+                      <p style={{ fontSize: '0.84rem', color: '#64748B', maxWidth: '380px', margin: '0 auto 16px' }}>
+                        Enroll students or team members to start tracking attendance and generating biometric logs.
+                      </p>
+                      <button
+                        type="button"
+                        className="btn-solid-primary"
+                        onClick={() => setShowAddUserModal(true)}
+                        style={{ padding: '8px 18px', fontSize: '0.84rem' }}
+                      >
+                        Enroll New Student
+                      </button>
+                    </div>
+                  ) : (
+                    filteredRoster.slice(0, 10).map((r) => (
+                      <div className="member-row-card" key={r.name}>
+                        {/* Col 1: Profile (Avatar + Name) */}
+                        <div className="member-col-profile">
+                          <div
+                            className="member-avatar-box"
+                            style={{ cursor: r.has_snapshot ? 'pointer' : 'default' }}
+                            onClick={() => r.has_snapshot && setModalImage(r.snapshot_url)}
+                            title={r.has_snapshot ? 'Click to view biometric snapshot' : r.name}
+                          >
+                            {!avatarErrors[r.name] && r.has_snapshot && r.snapshot_url ? (
+                              <img
+                                src={r.snapshot_url}
+                                alt={r.name}
+                                onError={() => setAvatarErrors(prev => ({ ...prev, [r.name]: true }))}
+                                className="member-avatar-img"
+                              />
+                            ) : (
+                              <div className="member-avatar-fallback">
+                                {r.name ? r.name.substring(0, 2).toUpperCase() : 'U'}
+                              </div>
+                            )}
+                          </div>
+                          <div className="member-name-block">
+                            <div className="member-name-title">{r.name}</div>
+                            <div className="member-name-sub">
+                              {r.roll_number || user?.company_name || 'Enrolled Student'}
                             </div>
-                          )}
-                        </div>
-                        <div className="member-name-block">
-                          <div className="member-name-title">{r.name}</div>
-                          <div className="member-name-sub">
-                            {r.roll_number || user?.company_name || 'Enrolled Student'}
                           </div>
                         </div>
-                      </div>
 
-                      {/* Col 2: Shift Info */}
-                      <div className="member-col-shift">
-                        <div className="shift-title">Fulltime</div>
-                        <div className="shift-sub">
-                          {companyInfo.required_hours || '7.0'}h ({companyInfo.check_in_time} - {companyInfo.check_out_time})
+                        {/* Col 2: Shift Info */}
+                        <div className="member-col-shift">
+                          <div className="shift-title">Fulltime</div>
+                          <div className="shift-sub">
+                            {companyInfo.required_hours || '8.0'}h ({companyInfo.check_in_time} - {companyInfo.check_out_time})
+                          </div>
+                        </div>
+
+                        {/* Col 3: Timestamps */}
+                        <div className="member-col-time">
+                          <div className="time-title">
+                            {r.checkin ? r.checkin : <span className="time-empty">—</span>}
+                          </div>
+                          <div className="time-sub">
+                            {r.checkout ? `Out: ${r.checkout}` : r.checkin ? `Working: ${r.hours || '0'}h` : 'No Check-in'}
+                          </div>
+                        </div>
+
+                        {/* Col 4: Status & Date */}
+                        <div className="member-col-status">
+                          <div className={`status-title-text ${r.status === 'Present' ? 'present' : 'absent'}`}>
+                            {r.day_status || r.status || 'Absent'}
+                          </div>
+                          <div className="status-date-sub">
+                            {r.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </div>
+                        </div>
+
+                        {/* Col 5: Action Button */}
+                        <div className="member-col-action">
+                          {r.allow_checkout ? (
+                            <button
+                              className="btn-member-action checkout"
+                              onClick={() => handleForceCheckout(r.name)}
+                            >
+                              Force Checkout
+                            </button>
+                          ) : r.checkout ? (
+                            <span className="badge-member-completed">✓ Completed</span>
+                          ) : (
+                            <button
+                              className="btn-member-action checkin"
+                              onClick={() => handleForceCheckin(r.name)}
+                            >
+                              Check In
+                            </button>
+                          )}
                         </div>
                       </div>
+                    ))
+                  )}
 
-                      {/* Col 3: Department Pill */}
-                      <div className="member-col-dept">
-                        <span className="member-dept-badge">
-                          {r.department || 'Engineering'}
-                        </span>
-                      </div>
-
-                      {/* Col 4: Timestamps */}
-                      <div className="member-col-time">
-                        <div className="time-title">
-                          {r.checkin ? r.checkin : <span className="time-empty">—</span>}
-                        </div>
-                        <div className="time-sub">
-                          {r.checkout ? `Out: ${r.checkout}` : r.checkin ? `Working: ${r.hours || '0'}h` : 'No Check-in'}
-                        </div>
-                      </div>
-
-                      {/* Col 5: Status & Date */}
-                      <div className="member-col-status">
-                        <div className={`status-title-text ${r.status === 'Present' ? 'present' : 'absent'}`}>
-                          {r.day_status || r.status || 'Absent'}
-                        </div>
-                        <div className="status-date-sub">
-                          {r.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </div>
-                      </div>
-
-                      {/* Col 6: Action Button */}
-                      <div className="member-col-action">
-                        {r.allow_checkout ? (
-                          <button
-                            className="btn-member-action checkout"
-                            onClick={() => handleForceCheckout(r.name)}
-                          >
-                            Force Checkout
-                          </button>
-                        ) : r.checkout ? (
-                          <span className="badge-member-completed">✓ Completed</span>
-                        ) : (
-                          <button
-                            className="btn-member-action checkin"
-                            onClick={() => handleForceCheckin(r.name)}
-                          >
-                            Check In
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  {filteredRoster.length === 0 && (
+                  {totalStudents > 0 && filteredRoster.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '36px 0', color: '#8E8CA8', fontSize: '0.84rem' }}>
                       No matching members found in attendance roster.
                     </div>
@@ -1175,8 +1241,8 @@ export default function UnifiedAdminPanel() {
                               onClick={() => setModalImage(r.snapshot_url)}
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                                <circle cx="12" cy="13" r="4"/>
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                <circle cx="12" cy="13" r="4" />
                               </svg>
                               View Photo
                             </button>
@@ -1294,8 +1360,8 @@ export default function UnifiedAdminPanel() {
                   onClick={() => setShowAddUserModal(true)}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
                   Enroll New Student
                 </button>
@@ -1371,10 +1437,10 @@ export default function UnifiedAdminPanel() {
                   onClick={() => setPayrollSubTab('run')}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="4" y="2" width="16" height="20" rx="2"/>
-                    <line x1="8" y1="6" x2="16" y2="6"/>
-                    <line x1="16" y1="14" x2="16" y2="18"/>
-                    <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/>
+                    <rect x="4" y="2" width="16" height="20" rx="2" />
+                    <line x1="8" y1="6" x2="16" y2="6" />
+                    <line x1="16" y1="14" x2="16" y2="18" />
+                    <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01" />
                   </svg>
                   Monthly Run & Calculation
                 </button>
@@ -1385,7 +1451,7 @@ export default function UnifiedAdminPanel() {
                   onClick={() => setPayrollSubTab('salaries')}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                   </svg>
                   Base Salary Setup
                 </button>
@@ -1396,8 +1462,8 @@ export default function UnifiedAdminPanel() {
                   onClick={() => setPayrollSubTab('history')}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
                   </svg>
                   Finalized History
                 </button>
@@ -1422,11 +1488,11 @@ export default function UnifiedAdminPanel() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     {payrollAlert.type === 'error' ? (
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                       </svg>
                     ) : (
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                       </svg>
                     )}
                     <span>{payrollAlert.text}</span>
@@ -1437,7 +1503,7 @@ export default function UnifiedAdminPanel() {
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0 }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                   </button>
                 </div>
@@ -1458,7 +1524,7 @@ export default function UnifiedAdminPanel() {
                           value={payrollMonth}
                           onChange={(e) => setPayrollMonth(parseInt(e.target.value, 10))}
                         >
-                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => (
                             <option key={m} value={m}>{getMonthName(m)}</option>
                           ))}
                         </select>
@@ -1500,9 +1566,9 @@ export default function UnifiedAdminPanel() {
                         style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="23 4 23 10 17 10"/>
-                          <polyline points="1 20 1 14 7 14"/>
-                          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                          <polyline points="23 4 23 10 17 10" />
+                          <polyline points="1 20 1 14 7 14" />
+                          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                         </svg>
                         {payrollLoading ? 'Calculating...' : 'Recalculate'}
                       </button>
@@ -1517,15 +1583,15 @@ export default function UnifiedAdminPanel() {
                         {payrollSummary?.is_locked ? (
                           <>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                             </svg>
                             Locked & Approved
                           </>
                         ) : (
                           <>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12"/>
+                              <polyline points="20 6 9 17 4 12" />
                             </svg>
                             {payrollFinalizing ? 'Finalizing...' : 'Approve & Finalize Month'}
                           </>
@@ -1539,9 +1605,9 @@ export default function UnifiedAdminPanel() {
                     <div className="payroll-kpi-card">
                       <div className="payroll-kpi-icon purple">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="2" y="6" width="20" height="15" rx="3"/>
-                          <path d="M6 6V4.5A2.5 2.5 0 0 1 8.5 2h7A2.5 2.5 0 0 1 18 4.5V6"/>
-                          <circle cx="16" cy="14" r="1.5"/>
+                          <rect x="2" y="6" width="20" height="15" rx="3" />
+                          <path d="M6 6V4.5A2.5 2.5 0 0 1 8.5 2h7A2.5 2.5 0 0 1 18 4.5V6" />
+                          <circle cx="16" cy="14" r="1.5" />
                         </svg>
                       </div>
                       <div className="payroll-kpi-info">
@@ -1555,10 +1621,10 @@ export default function UnifiedAdminPanel() {
                     <div className="payroll-kpi-card">
                       <div className="payroll-kpi-icon blue">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                          <circle cx="9" cy="7" r="4"/>
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                          <circle cx="9" cy="7" r="4" />
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                         </svg>
                       </div>
                       <div className="payroll-kpi-info">
@@ -1572,8 +1638,8 @@ export default function UnifiedAdminPanel() {
                     <div className="payroll-kpi-card">
                       <div className="payroll-kpi-icon green">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                          <polyline points="22 4 12 14.01 9 11.01"/>
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                          <polyline points="22 4 12 14.01 9 11.01" />
                         </svg>
                       </div>
                       <div className="payroll-kpi-info">
@@ -1587,8 +1653,8 @@ export default function UnifiedAdminPanel() {
                     <div className="payroll-kpi-card">
                       <div className="payroll-kpi-icon amber">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                         </svg>
                       </div>
                       <div className="payroll-kpi-info">
@@ -1597,14 +1663,14 @@ export default function UnifiedAdminPanel() {
                           {payrollSummary?.is_locked ? (
                             <span className="payroll-status-badge approved">
                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="20 6 9 17 4 12"/>
+                                <polyline points="20 6 9 17 4 12" />
                               </svg>
                               Approved & Locked
                             </span>
                           ) : (
                             <span className="payroll-status-badge calculated">
                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                               </svg>
                               Draft (Calculated)
                             </span>
@@ -1628,8 +1694,8 @@ export default function UnifiedAdminPanel() {
 
                       <div className="member-search-wrap">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="11" cy="11" r="8"/>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                          <circle cx="11" cy="11" r="8" />
+                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
                         <input
                           type="text"
@@ -1710,10 +1776,10 @@ export default function UnifiedAdminPanel() {
                                     title="View Branded Payslip"
                                   >
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                      <polyline points="14 2 14 8 20 8"/>
-                                      <line x1="16" y1="13" x2="8" y2="13"/>
-                                      <line x1="16" y1="17" x2="8" y2="17"/>
+                                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                      <polyline points="14 2 14 8 20 8" />
+                                      <line x1="16" y1="13" x2="8" y2="13" />
+                                      <line x1="16" y1="17" x2="8" y2="17" />
                                     </svg>
                                     View Payslip
                                   </button>
@@ -1755,8 +1821,8 @@ export default function UnifiedAdminPanel() {
 
                     <div className="member-search-wrap">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="11" cy="11" r="8"/>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
                       </svg>
                       <input
                         type="text"
@@ -1803,8 +1869,8 @@ export default function UnifiedAdminPanel() {
                                 onClick={() => setSalaryEditModal({ open: true, userName: m.name, baseSalary: m.base_salary, saving: false })}
                               >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                                 </svg>
                                 Edit Salary
                               </button>
@@ -1845,9 +1911,9 @@ export default function UnifiedAdminPanel() {
                       style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="23 4 23 10 17 10"/>
-                        <polyline points="1 20 1 14 7 14"/>
-                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        <polyline points="23 4 23 10 17 10" />
+                        <polyline points="1 20 1 14 7 14" />
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                       </svg>
                       Refresh History
                     </button>
@@ -1891,7 +1957,7 @@ export default function UnifiedAdminPanel() {
                             <td>
                               <span className="payroll-status-badge approved">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="20 6 9 17 4 12"/>
+                                  <polyline points="20 6 9 17 4 12" />
                                 </svg>
                                 {h.status}
                               </span>
@@ -2187,8 +2253,8 @@ export default function UnifiedAdminPanel() {
             <div className="payslip-modal-actions-top">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6857DF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  <path d="m9 12 2 2 4-4"/>
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
                 </svg>
                 <span>Attendify Verified Payslip</span>
               </div>
@@ -2202,9 +2268,9 @@ export default function UnifiedAdminPanel() {
                   title="Print or Save as PDF"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="6 9 6 2 18 2 18 9"/>
-                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                    <rect x="6" y="14" width="12" height="8"/>
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
                   </svg>
                   Print / Save PDF
                 </button>
@@ -2217,8 +2283,8 @@ export default function UnifiedAdminPanel() {
                   title="Close preview"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
                 </button>
               </div>
@@ -2408,7 +2474,7 @@ export default function UnifiedAdminPanel() {
                 disabled={salaryEditModal.saving}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
