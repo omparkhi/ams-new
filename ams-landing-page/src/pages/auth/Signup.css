@@ -1,7 +1,9 @@
 /* ==========================================================================
    Attendify Premium Signup Page Styles
-   Compact Laptop-Fitted Design: Fits completely on 768p/1080p screen viewports
-   Matching exact Hero section framing: White outer spacing -> Purple container -> Hero texture
+   Clean, Compact & Precise Viewport Fitting
+   - Zero negative letter-spacing
+   - Clean, natural typography matching landing page hero section
+   - Fully contained within white card (zero grid overflow)
    ========================================================================== */
 
 /* Outer Page Frame - Exact White Spacing like Landing Page Hero Section */
@@ -15,6 +17,7 @@
   flex-direction: column;
   justify-content: center;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  letter-spacing: normal;
 }
 
 @media (max-width: 768px) {
@@ -23,7 +26,7 @@
   }
 }
 
-/* Purple Hero Box Container - Fitted to Viewport Height */
+/* Purple Hero Box Container - Inset Framing & Fitted to Screen */
 .signup-hero-container {
   flex: 1;
   min-height: calc(100vh - 24px);
@@ -37,14 +40,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px 16px 14px 16px;
+  padding: 18px 16px 14px 16px;
   box-sizing: border-box;
 }
 
 @media (max-width: 640px) {
   .signup-hero-container {
     border-radius: 12px;
-    padding: 20px 12px 18px 12px;
+    padding: 20px 12px 16px 12px;
     min-height: calc(100vh - 12px);
   }
 }
@@ -89,7 +92,7 @@
   opacity: 0.55;
 }
 
-/* Compact Foreground Header */
+/* Header Area - Clean, natural typography matching hero section */
 .signup-header {
   text-align: center;
   margin-bottom: 12px;
@@ -119,33 +122,35 @@
 .signup-main-title {
   color: #FFFFFF;
   font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.4px;
+  font-weight: 600;
+  letter-spacing: normal;
   margin-top: 6px;
-  margin-bottom: 3px;
-  line-height: 1.2;
+  margin-bottom: 4px;
+  line-height: 1.25;
 }
 
 .signup-main-subtitle {
   color: rgba(255, 255, 255, 0.92);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 400;
-  line-height: 1.4;
-  max-width: 440px;
+  letter-spacing: normal;
+  line-height: 1.45;
+  max-width: 480px;
   margin: 0 auto;
 }
 
-/* Compact White Form Card Container */
+/* White Form Card Container - Strictly contained */
 .signup-card-container {
   background: #FFFFFF;
   width: 100%;
-  max-width: 490px;
+  max-width: 510px;
   border-radius: 20px;
-  padding: 18px 26px 14px 26px;
+  padding: 18px 24px 14px 24px;
   box-shadow: 0 16px 40px -8px rgba(45, 25, 125, 0.26), 0 2px 10px rgba(0, 0, 0, 0.04);
   position: relative;
   z-index: 10;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 @media (max-width: 640px) {
@@ -168,7 +173,7 @@
   color: #B91C1C;
   padding: 8px 12px;
   border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   font-size: 12px;
   display: flex;
   align-items: flex-start;
@@ -182,18 +187,20 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Form Fields - Compact */
+/* Form Fields */
 .signup-form-group {
   margin-bottom: 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .signup-form-label {
   display: block;
   font-size: 12px;
-  font-weight: 700;
-  color: #0F172A;
+  font-weight: 500;
+  color: #1E293B;
   margin-bottom: 4px;
-  letter-spacing: -0.1px;
+  letter-spacing: normal;
 }
 
 .signup-form-label .required-star {
@@ -206,10 +213,12 @@
   display: flex;
   align-items: center;
   height: 38px;
+  width: 100%;
+  min-width: 0;
   background: #F8FAFC;
   border: 1.2px solid #E2E8F0;
   border-radius: 10px;
-  padding: 0 12px;
+  padding: 0 10px;
   gap: 8px;
   transition: all 0.2s ease;
   box-sizing: border-box;
@@ -235,20 +244,26 @@
 }
 
 .signup-text-input {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
+  width: 100%;
   height: 100%;
   border: none;
   background: transparent;
   outline: none;
   font-family: inherit;
   font-size: 13px;
+  font-weight: 400;
   color: #1E293B;
+  letter-spacing: normal;
   box-sizing: border-box;
 }
 
 .signup-text-input::placeholder {
   color: #94A3B8;
-  font-size: 12.5px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: normal;
 }
 
 .signup-eye-toggle-btn {
@@ -261,6 +276,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 4px;
+  flex-shrink: 0;
   transition: color 0.15s ease;
 }
 
@@ -268,22 +284,30 @@
   color: #6366F1;
 }
 
-/* 2-Column Grid (Password & Confirm) */
+/* 2-Column Grid (Password & Confirm Password) - Prevent ANY overflow */
 .signup-grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
   margin-bottom: 10px;
 }
 
-@media (max-width: 540px) {
+.signup-grid-2 > div {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 520px) {
   .signup-grid-2 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 10px;
   }
 }
 
-/* Shift Timings & Rules Box - Compact */
+/* Shift Timings & Rules Box */
 .signup-shift-box {
   background: linear-gradient(135deg, #EEF2FF 0%, #F5F7FF 100%);
   border: 1px solid #E0E7FF;
@@ -293,18 +317,21 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .signup-shift-icon-circle {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
   border-radius: 50%;
   background: #DFE7FE;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #6366F1;
+  flex-shrink: 0;
 }
 
 .signup-shift-text-wrap {
@@ -315,31 +342,41 @@
 
 .signup-shift-heading {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
   line-height: 1.25;
+  letter-spacing: normal;
 }
 
 .signup-shift-subtext {
-  font-size: 11px;
+  font-size: 11.5px;
   color: #64748B;
   font-weight: 400;
   margin: 0;
   line-height: 1.25;
+  letter-spacing: normal;
 }
 
-/* 3-Column Dropdowns - Compact */
+/* 3-Column Dropdowns */
 .signup-grid-3 {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
   margin-bottom: 12px;
 }
 
-@media (max-width: 540px) {
+.signup-grid-3 > div {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 520px) {
   .signup-grid-3 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
   }
 }
@@ -349,10 +386,12 @@
   display: flex;
   align-items: center;
   height: 36px;
+  width: 100%;
+  min-width: 0;
   background: #F8FAFC;
   border: 1.2px solid #E2E8F0;
   border-radius: 10px;
-  padding: 0 10px;
+  padding: 0 8px;
   gap: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -375,24 +414,27 @@
 }
 
 .signup-select-element {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
+  width: 100%;
   height: 100%;
   border: none;
   background: transparent;
   outline: none;
   font-family: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   color: #1E293B;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
   padding-right: 14px;
+  letter-spacing: normal;
 }
 
 .signup-select-chevron {
   position: absolute;
-  right: 10px;
+  right: 8px;
   pointer-events: none;
   color: #64748B;
   display: flex;
@@ -400,7 +442,7 @@
   justify-content: center;
 }
 
-/* CTA Submit Button - Compact */
+/* CTA Submit Button */
 .signup-submit-btn {
   width: 100%;
   height: 42px;
@@ -411,6 +453,7 @@
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 600;
+  letter-spacing: normal;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -418,6 +461,7 @@
   gap: 7px;
   box-shadow: 0 8px 20px -3px rgba(99, 102, 241, 0.4);
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .signup-submit-btn:hover:not(:disabled) {
@@ -440,15 +484,18 @@
   margin-top: 10px;
   text-align: center;
   font-size: 12.5px;
+  font-weight: 400;
   color: #475569;
+  letter-spacing: normal;
 }
 
 .signup-signin-link {
   color: #4F46E5;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
   margin-left: 4px;
+  letter-spacing: normal;
   transition: color 0.15s ease;
 }
 
@@ -456,7 +503,7 @@
   color: #3730A3;
 }
 
-/* Trust Badges Row (Below Card) - Compact */
+/* Trust Badges Row (Below Card) */
 .signup-trust-row {
   margin-top: 12px;
   display: flex;
@@ -474,7 +521,8 @@
   gap: 6px;
   color: rgba(255, 255, 255, 0.92);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: normal;
 }
 
 .signup-trust-item svg {
@@ -486,7 +534,7 @@
   font-size: 12px;
 }
 
-@media (max-width: 540px) {
+@media (max-width: 520px) {
   .signup-trust-row {
     flex-direction: column;
     gap: 6px;

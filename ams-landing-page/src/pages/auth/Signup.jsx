@@ -109,7 +109,7 @@ export default function Signup() {
                 <div>{error}</div>
                 {error.toLowerCase().includes('already') && (
                   <div style={{ marginTop: '4px' }}>
-                    <Link to="/login" style={{ color: '#B91C1C', fontWeight: '700', textDecoration: 'underline' }}>
+                    <Link to="/login" style={{ color: '#B91C1C', fontWeight: '600', textDecoration: 'underline' }}>
                       Click here to Sign In with your existing account →
                     </Link>
                   </div>
@@ -241,7 +241,7 @@ export default function Signup() {
                     type={showConfirmPassword ? 'text' : 'password'}
                     name="confirm_password"
                     required
-                    placeholder="Re-enter password"
+                    placeholder="Confirm password"
                     value={formData.confirm_password}
                     onChange={handleChange}
                     className="signup-text-input"
