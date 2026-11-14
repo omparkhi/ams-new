@@ -4,6 +4,7 @@ Database utilities and multi-tenant schema manager for AMS Cloud.
 """
 
 import os
+import re
 import psycopg2
 import logging
 from datetime import datetime
@@ -12,6 +13,26 @@ logger = logging.getLogger(__name__)
 
 # Default to local PostgreSQL on Windows; Render injects DATABASE_URL automatically
 DATABASE_URL = os.environ.get('DATABASE_URL') or 'postgresql://postgres:root@localhost:5432/attendify_db'
+
+
+def sanitize_pg_query(query, params=None):
+    """
+    Sanitizes SQL queries for seamless PostgreSQL execution:
+    1. Replaces MySQL/SQLite backticks with double quotes.
+    2. Enforces double quotes on case-sensitive column identifiers (Username, Password, Email, Address, Contact).
+    3. Replaces ? with %s parameter placeholders.
+    """
+    if isinstance(query, str):
+        if '`' in query:
+            query = query.replace('`', '"')
+        query = re.sub(r'(?<!")\bUsername\b(?!")', '"Username"', query)
+        query = re.sub(r'(?<!")\bPassword\b(?!")', '"Password"', query)
+        query = re.sub(r'(?<!")\bEmail\b(?!")', '"Email"', query)
+        query = re.sub(r'(?<!")\bAddress\b(?!")', '"Address"', query)
+        query = re.sub(r'(?<!")\bContact\b(?!")', '"Contact"', query)
+        if '?' in query and params is not None:
+            query = query.replace('?', '%s')
+    return query
 
 
 class DBRow(dict):
@@ -45,14 +66,11 @@ class PGCursorWrapper:
         self._cursor = cursor
 
     def execute(self, query, params=None):
-        if isinstance(query, str) and '?' in query and params is not None:
-            # Safely replace unescaped ? with %s for PostgreSQL compatibility
-            query = query.replace('?', '%s')
+        query = sanitize_pg_query(query, params)
         return self._cursor.execute(query, params)
 
     def executemany(self, query, seq_of_params):
-        if isinstance(query, str) and '?' in query:
-            query = query.replace('?', '%s')
+        query = sanitize_pg_query(query, seq_of_params)
         return self._cursor.executemany(query, seq_of_params)
 
     def fetchone(self):
@@ -302,7 +320,7 @@ def fetch_user_by_username(username):
             cursor = conn.cursor()
             clean_name = username.strip()
             cursor.execute(
-                'SELECT * FROM Companies WHERE LOWER(TRIM(Username)) = LOWER(%s) OR LOWER(TRIM("Email")) = LOWER(%s) LIMIT 1',
+                'SELECT * FROM Companies WHERE LOWER(TRIM("Username")) = LOWER(%s) OR LOWER(TRIM("Email")) = LOWER(%s) LIMIT 1',
                 (clean_name, clean_name)
             )
             row = cursor.fetchone()

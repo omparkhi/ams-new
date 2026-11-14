@@ -88,7 +88,7 @@ def register_company():
         cursor = conn.cursor()
 
         # Check if username already exists (case-insensitive)
-        cursor.execute("SELECT * FROM Companies WHERE LOWER(Username) = LOWER(?)", (username,))
+        cursor.execute('SELECT * FROM Companies WHERE LOWER("Username") = LOWER(?)', (username,))
         if cursor.fetchone():
             return jsonify({'error': f'Username "{username}" is already taken. If you already have an account, please sign in instead.'}), 409
 
@@ -122,11 +122,7 @@ def register_company():
 
         # Dynamically create company attendance table
         table_name = company_id.replace(" ", "_")
-        cursor.execute(f"""
-            CREATE TABLE IF NOT EXISTS `{table_name}` (
-                Name TEXT
-            )
-        """)
+        cursor.execute(f'CREATE TABLE IF NOT EXISTS "{table_name}" (Name TEXT)')
 
         conn.commit()
 
@@ -209,7 +205,7 @@ def login():
                 try:
                     conn = get_db_connection()
                     cursor = conn.cursor()
-                    cursor.execute('UPDATE Companies SET Password = ? WHERE "Company ID" = ?',
+                    cursor.execute('UPDATE Companies SET "Password" = ? WHERE "Company ID" = ?',
                                    (generate_password_hash(password), company_id))
                     conn.commit()
                     conn.close()
